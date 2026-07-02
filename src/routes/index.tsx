@@ -43,7 +43,7 @@ function Home() {
           <a href="/onboarding/business" className="inline-block bg-[#E8633B] text-white px-8 py-3.5 rounded-lg font-semibold text-lg hover:bg-[#d4552e] transition shadow-lg shadow-[#E8633B]/25">
             Join as a Venue →
           </a>
-          <a href="/auth/sign-up" className="inline-block border-2 border-[#0F172A] text-[#0F172A] px-8 py-3.5 rounded-lg font-semibold text-lg hover:bg-[#0F172A] hover:text-white transition">
+          <a href="/onboarding/worker" className="inline-block border-2 border-[#0F172A] text-[#0F172A] px-8 py-3.5 rounded-lg font-semibold text-lg hover:bg-[#0F172A] hover:text-white transition">
             I'm a Bartender or Server →
           </a>
         </div>
@@ -97,7 +97,7 @@ function Home() {
             </div>
           </div>
           <div className="text-center mt-8">
-            <a href="/auth/sign-up" className="inline-block border-2 border-[#0F172A] text-[#0F172A] px-8 py-3 rounded-lg font-semibold hover:bg-[#0F172A] hover:text-white transition">
+            <a href="/onboarding/worker" className="inline-block border-2 border-[#0F172A] text-[#0F172A] px-8 py-3 rounded-lg font-semibold hover:bg-[#0F172A] hover:text-white transition">
               Join Free as a Bartender or Server →
             </a>
           </div>
@@ -269,7 +269,7 @@ function Home() {
             <a href="/auth/sign-up" className="inline-block bg-[#E8633B] text-white px-10 py-3.5 rounded-lg font-bold text-lg hover:bg-[#d4552e] transition shadow-lg shadow-[#E8633B]/25">
               Get Started →
             </a>
-            <a href="/auth/sign-up" className="inline-block border-2 border-white text-white px-10 py-3.5 rounded-lg font-semibold hover:bg-white/10 transition">
+            <a href="/onboarding/worker" className="inline-block border-2 border-white text-white px-10 py-3.5 rounded-lg font-semibold hover:bg-white/10 transition">
               Workers: Join Free →
             </a>
           </div>

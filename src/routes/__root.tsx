@@ -4,9 +4,14 @@ import {
   Scripts,
   createRootRoute,
 } from "@tanstack/react-router";
+import { ClerkProvider } from "@clerk/clerk-react";
 import type { ReactNode } from "react";
 
 import appCss from "~/styles/app.css?url";
+
+const CLERK_PUBLISHABLE_KEY = typeof window !== "undefined"
+  ? import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+  : undefined;
 
 export const Route = createRootRoute({
   head: () => ({
@@ -42,14 +47,16 @@ function RootComponent() {
 
 function RootDocument({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        {children}
-        <Scripts />
-      </body>
-    </html>
+    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
+      <html lang="en">
+        <head>
+          <HeadContent />
+        </head>
+        <body>
+          {children}
+          <Scripts />
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

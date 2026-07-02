@@ -9,9 +9,7 @@ import type { ReactNode } from "react";
 
 import appCss from "~/styles/app.css?url";
 
-const CLERK_PUBLISHABLE_KEY = typeof window !== "undefined"
-  ? import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
-  : undefined;
+const CLERK_PUBLISHABLE_KEY = "pk_test_ZmFzdC1mbGVhLTI3LmNsZXJrLmFjY291bnRzLmRldiQ";
 
 export const Route = createRootRoute({
   head: () => ({

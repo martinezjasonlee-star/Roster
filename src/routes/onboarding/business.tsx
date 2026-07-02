@@ -68,7 +68,12 @@ function BusinessOnboarding() {
     setSaving(true);
     try {
       await saveBusiness({ data: { ...form, email: userId || "" } });
-      setDone(true);
+      // Redirect to Stripe checkout for the selected plan
+      const stripeLinks: Record<string, string> = {
+        starter: "https://buy.stripe.com/fZudR9aKrb4W4EacGTbZe00",
+        pro: "https://buy.stripe.com/5kQ3cv2dVgpg9YueP1bZe02",
+      };
+      window.location.href = stripeLinks[form.plan] || stripeLinks.starter;
     } catch (e) {
       alert("Something went wrong. Please try again.");
     }

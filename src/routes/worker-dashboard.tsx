@@ -33,6 +33,14 @@ function WorkerDashboard() {
             <h1 className="text-2xl font-bold text-[#0F172A]">My Shifts</h1>
             <p className="text-slate-500">Find and manage your shifts.</p>
           </div>
+          <div className="flex gap-2">
+            <a href="/messaging" className="border border-slate-200 text-slate-600 px-4 py-2.5 rounded-lg font-semibold text-sm hover:border-slate-300 transition">
+              💬 Messages
+            </a>
+            <a href="/shifts/browse" className="bg-[#E8633B] text-white px-5 py-2.5 rounded-lg font-semibold text-sm hover:bg-[#d4552e] transition">
+              Browse Shifts
+            </a>
+          </div>
         </div>
 
         <div className="grid md:grid-cols-3 gap-4 mb-8">
@@ -54,7 +62,8 @@ function WorkerDashboard() {
           <p className="text-slate-300 mb-6">Venues in Denver-Boulder can now find you. Shifts will appear here when venues post them.</p>
           <div className="flex gap-3 justify-center">
             <a href="/shifts/browse" className="inline-block bg-[#E8633B] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#d4552e] transition">Browse Shifts</a>
-            <a href="#" className="inline-block border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/10 transition">Edit Profile</a>
+            <a href="/messaging" className="inline-block border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/10 transition">Messages</a>
+            <a href="/rate" className="inline-block border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/10 transition">Rate a Venue</a>
           </div>
         </div>
       </div>

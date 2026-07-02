@@ -42,6 +42,9 @@ function Dashboard() {
             <a href="/messaging" className="border border-slate-200 text-slate-600 px-4 py-2.5 rounded-lg font-semibold text-sm hover:border-slate-300 transition">
               💬 Messages
             </a>
+            <a href="/admin" className="border border-slate-200 text-slate-600 px-4 py-2.5 rounded-lg font-semibold text-sm hover:border-slate-300 transition">
+              🛡️ Admin
+            </a>
           <a href="/shifts/post" className="bg-[#E8633B] text-white px-5 py-2.5 rounded-lg font-semibold text-sm hover:bg-[#d4552e] transition">
             + Post a Shift
           </a>
@@ -68,9 +71,14 @@ function Dashboard() {
         <div className="bg-[#0F172A] rounded-xl p-8 text-center">
           <h2 className="text-xl font-bold text-white mb-2">Ready to staff your first shift?</h2>
           <p className="text-slate-300 mb-6">Post a shift and get matched with vetted local bartenders and servers.</p>
-          <a href="/shifts/post" className="inline-block bg-[#E8633B] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#d4552e] transition">
-            Post Your First Shift →
-          </a>
+          <div className="flex gap-3 justify-center">
+            <a href="/shifts/post" className="inline-block bg-[#E8633B] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#d4552e] transition">
+              Post Your First Shift →
+            </a>
+            <a href="/rate" className="inline-block border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white/10 transition">
+              ⭐ Rate a Worker
+            </a>
+          </div>
         </div>
       </div>
     </div>

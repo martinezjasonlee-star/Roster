@@ -38,7 +38,7 @@ function Dashboard() {
             <h1 className="text-2xl font-bold text-[#0F172A]">Dashboard</h1>
             <p className="text-slate-500">Manage your venue and shifts.</p>
           </div>
-          <a href="#" className="bg-[#E8633B] text-white px-5 py-2.5 rounded-lg font-semibold text-sm hover:bg-[#d4552e] transition">
+          <a href="/shifts/post" className="bg-[#E8633B] text-white px-5 py-2.5 rounded-lg font-semibold text-sm hover:bg-[#d4552e] transition">
             + Post a Shift
           </a>
         </div>
@@ -63,7 +63,7 @@ function Dashboard() {
         <div className="bg-[#0F172A] rounded-xl p-8 text-center">
           <h2 className="text-xl font-bold text-white mb-2">Ready to staff your first shift?</h2>
           <p className="text-slate-300 mb-6">Post a shift and get matched with vetted local bartenders and servers.</p>
-          <a href="#" className="inline-block bg-[#E8633B] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#d4552e] transition">
+          <a href="/shifts/post" className="inline-block bg-[#E8633B] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#d4552e] transition">
             Post Your First Shift →
           </a>
         </div>

@@ -53,7 +53,7 @@ function WorkerDashboard() {
           <h2 className="text-xl font-bold text-white mb-2">Your profile is live</h2>
           <p className="text-slate-300 mb-6">Venues in Denver-Boulder can now find you. Shifts will appear here when venues post them.</p>
           <div className="flex gap-3 justify-center">
-            <a href="#" className="inline-block bg-[#E8633B] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#d4552e] transition">Browse Shifts</a>
+            <a href="/shifts/browse" className="inline-block bg-[#E8633B] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#d4552e] transition">Browse Shifts</a>
             <a href="#" className="inline-block border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/10 transition">Edit Profile</a>
           </div>
         </div>

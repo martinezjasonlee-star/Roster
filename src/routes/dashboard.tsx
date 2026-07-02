@@ -38,6 +38,10 @@ function Dashboard() {
             <h1 className="text-2xl font-bold text-[#0F172A]">Dashboard</h1>
             <p className="text-slate-500">Manage your venue and shifts.</p>
           </div>
+          <div className="flex gap-2">
+            <a href="/messaging" className="border border-slate-200 text-slate-600 px-4 py-2.5 rounded-lg font-semibold text-sm hover:border-slate-300 transition">
+              💬 Messages
+            </a>
           <a href="/shifts/post" className="bg-[#E8633B] text-white px-5 py-2.5 rounded-lg font-semibold text-sm hover:bg-[#d4552e] transition">
             + Post a Shift
           </a>

@@ -19,7 +19,7 @@ function Home() {
         </div>
         <div className="flex items-center gap-4">
           <a href="/auth/sign-in" className="text-sm font-medium text-slate-600 hover:text-[#0F172A] transition">Sign In</a>
-          <a href="/auth/sign-up" className="bg-[#E8633B] text-white px-5 py-2 rounded-lg font-semibold text-sm hover:bg-[#d4552e] transition">
+          <a href="/onboarding/business" className="bg-[#E8633B] text-white px-5 py-2 rounded-lg font-semibold text-sm hover:bg-[#d4552e] transition">
             Join as a Venue
           </a>
         </div>
@@ -40,7 +40,7 @@ function Home() {
           monthly fee — zero commission per booking.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <a href="/auth/sign-up" className="inline-block bg-[#E8633B] text-white px-8 py-3.5 rounded-lg font-semibold text-lg hover:bg-[#d4552e] transition shadow-lg shadow-[#E8633B]/25">
+          <a href="/onboarding/business" className="inline-block bg-[#E8633B] text-white px-8 py-3.5 rounded-lg font-semibold text-lg hover:bg-[#d4552e] transition shadow-lg shadow-[#E8633B]/25">
             Join as a Venue →
           </a>
           <a href="/auth/sign-up" className="inline-block border-2 border-[#0F172A] text-[#0F172A] px-8 py-3.5 rounded-lg font-semibold text-lg hover:bg-[#0F172A] hover:text-white transition">

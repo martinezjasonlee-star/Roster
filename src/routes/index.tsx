@@ -288,7 +288,7 @@ function Home() {
             </svg>
             <span className="font-bold text-sm tracking-tight">Roster</span>
           </div>
-          <p className="text-xs text-slate-400">© 2025 Roster. All rights reserved.</p>
+          <p className="text-xs text-slate-400">© 2026 Roster. All rights reserved.</p>
           <div className="flex gap-4 text-xs text-slate-400">
             <a href="#" className="hover:text-[#0F172A] transition">Privacy</a>
             <a href="#" className="hover:text-[#0F172A] transition">Terms</a>

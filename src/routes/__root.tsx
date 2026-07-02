@@ -14,6 +14,12 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Roster — Premium Hospitality Staffing Network" },
+      { name: "description", content: "Denver-Boulder's membership-based staffing network for vetted bartenders, servers, and hospitality venues. Flat monthly fee, zero commission per booking." },
+      { property: "og:title", content: "Roster — Staff on Demand. No Markups. No Contracts." },
+      { property: "og:description", content: "The membership-based staffing network for bartenders, servers, and hospitality venues. Denver-Boulder." },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://d1359b97b85bb1aaccddfea0390a4eee.ctonew.app" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

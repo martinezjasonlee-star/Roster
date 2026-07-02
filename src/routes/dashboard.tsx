@@ -45,6 +45,7 @@ function Dashboard() {
           <a href="/shifts/post" className="bg-[#E8633B] text-white px-5 py-2.5 rounded-lg font-semibold text-sm hover:bg-[#d4552e] transition">
             + Post a Shift
           </a>
+          </div>
         </div>
 
         {/* Quick stats */}

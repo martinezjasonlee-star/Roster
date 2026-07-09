@@ -228,7 +228,7 @@ function WorkerOnboarding() {
                   <input type="range" min={5} max={50} step={5} value={form.travel_radius}
                     onChange={e => update("travel_radius", parseInt(e.target.value))}
                     className="flex-1 accent-[#E8633B]" />
-                  <span className="text-sm font-medium w-16">{form.travel_radius} miles</span>
+                  <span className="text-sm font-medium w-16 text-[#0F172A]">{form.travel_radius} miles</span>
                 </div>
               </div>
             </div>

@@ -292,15 +292,15 @@ function WorkerOnboarding() {
                         }`}>
                           {slot && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/></svg>}
                         </div>
-                        <span className="font-medium text-sm">{day}</span>
+                        <span className="font-medium text-sm text-[#0F172A]">{day}</span>
                       </div>
                       {slot && (
                         <div className="flex items-center gap-2">
                           <input type="time" value={slot.start} onChange={e => updateDay(i, "start", e.target.value)}
-                            className="border border-slate-300 rounded px-2 py-1 text-sm" />
+                            className="border border-slate-300 rounded px-2 py-1 text-sm text-[#0F172A]" />
                           <span className="text-[#0F172A] text-sm">to</span>
                           <input type="time" value={slot.end} onChange={e => updateDay(i, "end", e.target.value)}
-                            className="border border-slate-300 rounded px-2 py-1 text-sm" />
+                            className="border border-slate-300 rounded px-2 py-1 text-sm text-[#0F172A]" />
                         </div>
                       )}
                     </div>

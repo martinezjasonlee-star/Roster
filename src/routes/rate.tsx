@@ -56,7 +56,7 @@ function RatingPage() {
         <div className="bg-white rounded-xl p-8 shadow-lg max-w-md w-full text-center">
           <div className="text-5xl mb-4">⭐</div>
           <h1 className="text-2xl font-bold text-[#0F172A] mb-2">Rating submitted!</h1>
-          <p className="text-slate-500 mb-6">Thanks for helping keep Roster reliable.</p>
+          <p className="text-[#0F172A] mb-6">Thanks for helping keep Roster reliable.</p>
           <a href="/dashboard" className="inline-block bg-[#E8633B] text-white px-6 py-3 rounded-lg font-semibold">Back to Dashboard</a>
         </div>
       </div>
@@ -67,7 +67,7 @@ function RatingPage() {
     <div className="min-h-screen bg-[#F8F6F3] flex items-center justify-center px-4">
       <div className="bg-white rounded-xl p-8 shadow-lg max-w-md w-full">
         <h1 className="text-2xl font-bold text-[#0F172A] mb-1">Rate a Shift</h1>
-        <p className="text-slate-500 mb-6">How did it go? Rate the worker after their shift.</p>
+        <p className="text-[#0F172A] mb-6">How did it go? Rate the worker after their shift.</p>
 
         <div className="space-y-4">
           <div>
@@ -80,7 +80,7 @@ function RatingPage() {
             <div className="flex gap-1">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button key={star} onClick={() => setScore(star)}
-                  className={`text-3xl transition ${star <= score ? "text-yellow-400" : "text-slate-200"}`}>
+                  className={`text-3xl transition ${star <= score ? "text-yellow-400" : "text-[#0F172A]"}`}>
                   ★
                 </button>
               ))}

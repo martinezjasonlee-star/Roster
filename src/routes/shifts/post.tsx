@@ -67,8 +67,8 @@ function PostShift() {
         <div className="bg-white rounded-xl p-8 shadow-lg max-w-lg w-full text-center">
           <div className="text-5xl mb-4">✅</div>
           <h1 className="text-2xl font-bold text-[#0F172A] mb-2">Shift posted!</h1>
-          <p className="text-slate-500 mb-2">Your shift is now live in the marketplace.</p>
-          <p className="text-xs text-slate-400 mb-6">ID: {shiftId.slice(0, 8)}...</p>
+          <p className="text-[#0F172A] mb-2">Your shift is now live in the marketplace.</p>
+          <p className="text-xs text-[#0F172A] mb-6">ID: {shiftId.slice(0, 8)}...</p>
           <div className="flex gap-3 justify-center">
             <a href="/shifts/post" className="bg-[#E8633B] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#d4552e] transition">Post Another →</a>
             <a href="/dashboard" className="border-2 border-[#0F172A] text-[#0F172A] px-6 py-3 rounded-lg font-semibold hover:bg-[#0F172A] hover:text-white transition">Dashboard</a>
@@ -89,17 +89,17 @@ function PostShift() {
               <rect x="0" y="19" width="12" height="4" rx="2" fill="#E8633B"/>
             </svg>
             <span className="font-bold text-lg">Roster</span>
-            <span className="text-slate-300 mx-2">/</span>
-            <span className="text-sm text-slate-500">Post a Shift</span>
+            <span className="text-[#0F172A] mx-2">/</span>
+            <span className="text-sm text-[#0F172A]">Post a Shift</span>
           </div>
-          <a href="/dashboard" className="text-sm text-slate-500 hover:text-[#0F172A]">← Dashboard</a>
+          <a href="/dashboard" className="text-sm text-[#0F172A] hover:text-[#0F172A]">← Dashboard</a>
         </div>
       </div>
 
       <div className="max-w-3xl mx-auto px-6 py-8">
         <div className="bg-white rounded-xl p-8 shadow-sm">
           <h1 className="text-2xl font-bold text-[#0F172A] mb-1">Post a Shift</h1>
-          <p className="text-slate-500 mb-6">Fill in the details and get matched with vetted local pros.</p>
+          <p className="text-[#0F172A] mb-6">Fill in the details and get matched with vetted local pros.</p>
 
           <div className="grid md:grid-cols-2 gap-4 mb-4">
             <div>
@@ -165,7 +165,7 @@ function PostShift() {
                     update("certs_required", current.includes(c) ? current.filter(x => x !== c).join(",") : [...current, c].join(","));
                   }}
                     className={`px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer border ${
-                      form.certs_required.includes(c) ? "bg-[#E8633B] text-white border-[#E8633B]" : "border-slate-300 text-slate-600 hover:border-slate-400"
+                      form.certs_required.includes(c) ? "bg-[#E8633B] text-white border-[#E8633B]" : "border-slate-300 text-[#0F172A] hover:border-slate-400"
                     }`}>
                     {c.replace(/_/g, " ").replace(/\b\w/g, x => x.toUpperCase())}
                   </div>

@@ -64,7 +64,7 @@ function WorkerOnboarding() {
     if (isLoaded && !isSignedIn) window.location.href = "/auth/sign-up";
   }, [isLoaded, isSignedIn]);
 
-  if (!isLoaded) return <div className="min-h-screen bg-[#F8F6F3] flex items-center justify-center"><p className="text-slate-400">Loading...</p></div>;
+  if (!isLoaded) return <div className="min-h-screen bg-[#F8F6F3] flex items-center justify-center"><p className="text-[#0F172A]">Loading...</p></div>;
   if (!isSignedIn) return null;
 
   if (done) {
@@ -73,7 +73,7 @@ function WorkerOnboarding() {
         <div className="bg-white rounded-xl p-8 shadow-lg max-w-lg w-full text-center">
           <div className="text-5xl mb-4">🎉</div>
           <h1 className="text-2xl font-bold text-[#0F172A] mb-2">You're on Roster!</h1>
-          <p className="text-slate-500 mb-6">Your profile is live. Venues in Denver-Boulder can now find and book you.</p>
+          <p className="text-[#0F172A] mb-6">Your profile is live. Venues in Denver-Boulder can now find and book you.</p>
           <a href="/worker-dashboard" className="inline-block bg-[#E8633B] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#d4552e] transition">Browse Shifts →</a>
         </div>
       </div>
@@ -132,8 +132,8 @@ function WorkerOnboarding() {
             <rect x="0" y="19" width="12" height="4" rx="2" fill="#E8633B"/>
           </svg>
           <span className="font-bold text-lg tracking-tight">Roster</span>
-          <span className="text-slate-300 mx-2">/</span>
-          <span className="text-sm text-slate-500">Join as a worker</span>
+          <span className="text-[#0F172A] mx-2">/</span>
+          <span className="text-sm text-[#0F172A]">Join as a worker</span>
         </div>
       </div>
 
@@ -141,8 +141,8 @@ function WorkerOnboarding() {
         <div className="flex items-center justify-center gap-2 mb-10">
           {[1, 2, 3].map((s) => (
             <div key={s} className="flex items-center gap-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step >= s ? "bg-[#E8633B] text-white" : "bg-slate-200 text-slate-400"}`}>{s}</div>
-              <span className={`text-sm ${step >= s ? "text-[#0F172A] font-medium" : "text-slate-400"}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step >= s ? "bg-[#E8633B] text-white" : "bg-slate-200 text-[#0F172A]"}`}>{s}</div>
+              <span className={`text-sm ${step >= s ? "text-[#0F172A] font-medium" : "text-[#0F172A]"}`}>
                 {s === 1 ? "Profile" : s === 2 ? "Skills" : "Availability"}
               </span>
               {s < 3 && <div className="w-12 h-0.5 bg-slate-200 mx-2"/>}
@@ -154,7 +154,7 @@ function WorkerOnboarding() {
         {step === 1 && (
           <div className="bg-white rounded-xl p-8 shadow-sm">
             <h1 className="text-2xl font-bold text-[#0F172A] mb-1">Tell us about yourself</h1>
-            <p className="text-slate-500 mb-6">Bartenders and servers in Denver-Boulder trust Roster to find great shifts.</p>
+            <p className="text-[#0F172A] mb-6">Bartenders and servers in Denver-Boulder trust Roster to find great shifts.</p>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -243,7 +243,7 @@ function WorkerOnboarding() {
         {step === 2 && (
           <div className="bg-white rounded-xl p-8 shadow-sm">
             <h1 className="text-2xl font-bold text-[#0F172A] mb-1">Certifications</h1>
-            <p className="text-slate-500 mb-6">Select any certifications you hold. You can add more later.</p>
+            <p className="text-[#0F172A] mb-6">Select any certifications you hold. You can add more later.</p>
             <div className="space-y-3">
               {[
                 { id: "tips", name: "TIPS", desc: "Alcohol service certification" },
@@ -263,7 +263,7 @@ function WorkerOnboarding() {
                   </div>
                   <div>
                     <p className="font-medium text-sm">{cert.name}</p>
-                    <p className="text-xs text-slate-400">{cert.desc}</p>
+                    <p className="text-xs text-[#0F172A]">{cert.desc}</p>
                   </div>
                 </div>
               ))}
@@ -279,7 +279,7 @@ function WorkerOnboarding() {
         {step === 3 && (
           <div className="bg-white rounded-xl p-8 shadow-sm">
             <h1 className="text-2xl font-bold text-[#0F172A] mb-1">When are you available?</h1>
-            <p className="text-slate-500 mb-6">Toggle the days you typically work and set your hours.</p>
+            <p className="text-[#0F172A] mb-6">Toggle the days you typically work and set your hours.</p>
             <div className="space-y-2 mb-6">
               {DAYS.map((day, i) => {
                 const slot = form.availability.find(a => a.day === i);
@@ -298,7 +298,7 @@ function WorkerOnboarding() {
                         <div className="flex items-center gap-2">
                           <input type="time" value={slot.start} onChange={e => updateDay(i, "start", e.target.value)}
                             className="border border-slate-300 rounded px-2 py-1 text-sm" />
-                          <span className="text-slate-400 text-sm">to</span>
+                          <span className="text-[#0F172A] text-sm">to</span>
                           <input type="time" value={slot.end} onChange={e => updateDay(i, "end", e.target.value)}
                             className="border border-slate-300 rounded px-2 py-1 text-sm" />
                         </div>
@@ -315,7 +315,7 @@ function WorkerOnboarding() {
                 {saving ? "Saving..." : "Join Roster Free →"}
               </button>
             </div>
-            <p className="text-xs text-slate-400 text-center mt-4">Free to join. No membership fee. No commission.</p>
+            <p className="text-xs text-[#0F172A] text-center mt-4">Free to join. No membership fee. No commission.</p>
           </div>
         )}
       </div>

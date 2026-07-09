@@ -81,14 +81,14 @@ function Messaging() {
             </svg>
             <span className="font-bold text-lg">Messages</span>
           </div>
-          <a href="/dashboard" className="text-sm text-slate-500 hover:text-[#0F172A]">← Dashboard</a>
+          <a href="/dashboard" className="text-sm text-[#0F172A] hover:text-[#0F172A]">← Dashboard</a>
         </div>
       </div>
 
       <div className="flex-1 max-w-4xl mx-auto w-full px-6 py-6 flex flex-col">
         <div className="flex-1 bg-white rounded-xl shadow-sm p-6 overflow-y-auto max-h-[60vh] mb-4">
           {messages.length === 0 ? (
-            <div className="text-center py-12 text-slate-400">
+            <div className="text-center py-12 text-[#0F172A]">
               <div className="text-4xl mb-3">💬</div>
               <p className="font-medium">No messages yet</p>
               <p className="text-sm">Messages about your shifts will appear here.</p>
@@ -103,7 +103,7 @@ function Messaging() {
                       : "bg-slate-100 text-[#0F172A] rounded-bl-sm"
                   }`}>
                     <p className="text-sm">{msg.content}</p>
-                    <p className={`text-xs mt-1 ${msg.sender_id === userId ? "text-white/70" : "text-slate-400"}`}>
+                    <p className={`text-xs mt-1 ${msg.sender_id === userId ? "text-white/70" : "text-[#0F172A]"}`}>
                       {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </p>
                   </div>

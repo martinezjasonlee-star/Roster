@@ -60,10 +60,10 @@ function BrowseShifts() {
               <rect x="0" y="19" width="12" height="4" rx="2" fill="#E8633B"/>
             </svg>
             <span className="font-bold text-lg">Roster</span>
-            <span className="text-slate-300 mx-2">/</span>
-            <span className="text-sm text-slate-500">Browse Shifts</span>
+            <span className="text-[#0F172A] mx-2">/</span>
+            <span className="text-sm text-[#0F172A]">Browse Shifts</span>
           </div>
-          <a href="/worker-dashboard" className="text-sm text-slate-500 hover:text-[#0F172A]">← My Dashboard</a>
+          <a href="/worker-dashboard" className="text-sm text-[#0F172A] hover:text-[#0F172A]">← My Dashboard</a>
         </div>
       </div>
 
@@ -71,13 +71,13 @@ function BrowseShifts() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-[#0F172A]">Available Shifts</h1>
-            <p className="text-slate-500">{filtered.length} shifts in Denver-Boulder</p>
+            <p className="text-[#0F172A]">{filtered.length} shifts in Denver-Boulder</p>
           </div>
           <div className="flex gap-2">
             {["all", "bartender", "server", "barback"].map(r => (
               <button key={r} onClick={() => setRoleFilter(r)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                  roleFilter === r ? "bg-[#E8633B] text-white" : "bg-white border border-slate-200 text-slate-600 hover:border-slate-300"
+                  roleFilter === r ? "bg-[#E8633B] text-white" : "bg-white border border-slate-200 text-[#0F172A] hover:border-slate-300"
                 }`}>
                 {r === "all" ? "All Roles" : fmt(r)}
               </button>
@@ -89,7 +89,7 @@ function BrowseShifts() {
           <div className="text-center py-20 bg-white rounded-xl">
             <div className="text-4xl mb-4">🔍</div>
             <h2 className="text-xl font-bold text-[#0F172A] mb-2">No shifts available right now</h2>
-            <p className="text-slate-500">Check back soon or set your notifications.</p>
+            <p className="text-[#0F172A]">Check back soon or set your notifications.</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -100,16 +100,16 @@ function BrowseShifts() {
                     <div className="flex items-center gap-2 mb-2">
                       <span className="bg-[#E8633B]/10 text-[#E8633B] px-3 py-0.5 rounded-full text-xs font-semibold">{fmt(shift.role_type)}</span>
                       <span className="bg-[#0F172A]/5 text-[#0F172A] px-3 py-0.5 rounded-full text-xs font-medium">{fmt(shift.shift_type)}</span>
-                      {shift.dress_code && <span className="text-xs text-slate-400">{fmt(shift.dress_code)}</span>}
+                      {shift.dress_code && <span className="text-xs text-[#0F172A]">{fmt(shift.dress_code)}</span>}
                     </div>
                     <h3 className="font-bold text-lg text-[#0F172A]">{shift.location_name || "Venue in Denver"}</h3>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-slate-500">
+                    <div className="flex items-center gap-4 mt-2 text-sm text-[#0F172A]">
                       <span>📅 {shift.date}</span>
                       <span>🕐 {shift.start_time} - {shift.end_time}</span>
                       <span>💰 ${shift.hourly_rate}/hr + tips</span>
                       <span>👤 {shift.workers_needed} needed</span>
                     </div>
-                    {shift.notes && <p className="text-xs text-slate-400 mt-2 line-clamp-1">{shift.notes}</p>}
+                    {shift.notes && <p className="text-xs text-[#0F172A] mt-2 line-clamp-1">{shift.notes}</p>}
                   </div>
                   <button onClick={() => handleApply(shift)} disabled={applying === shift.id || applied.includes(shift.id)}
                     className={`shrink-0 px-6 py-2.5 rounded-lg font-semibold text-sm transition ${

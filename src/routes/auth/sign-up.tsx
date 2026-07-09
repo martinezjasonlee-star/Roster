@@ -11,7 +11,7 @@ function SignUpPage() {
       <div className="bg-white rounded-xl p-8 shadow-lg max-w-md w-full">
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-[#0F172A]">Join Roster</h1>
-          <p className="text-slate-500 mt-1">Create your account</p>
+          <p className="text-[#0F172A] mt-1">Create your account</p>
         </div>
         <SignUp routing="hash" signInUrl="/auth/sign-in" afterSignUpUrl="/onboarding/worker" />
       </div>

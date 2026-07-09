@@ -13,7 +13,7 @@ function Dashboard() {
     if (isLoaded && !isSignedIn) window.location.href = "/auth/sign-in";
   }, [isLoaded, isSignedIn]);
 
-  if (!isLoaded) return <div className="min-h-screen bg-[#F8F6F3] flex items-center justify-center"><p className="text-slate-400">Loading...</p></div>;
+  if (!isLoaded) return <div className="min-h-screen bg-[#F8F6F3] flex items-center justify-center"><p className="text-[#0F172A]">Loading...</p></div>;
   if (!isSignedIn) return null;
 
   return (
@@ -29,7 +29,7 @@ function Dashboard() {
             </svg>
             <span className="font-bold text-lg tracking-tight">Roster</span>
           </div>
-          <a href="/" className="text-sm text-slate-500 hover:text-[#0F172A] transition">← Back to site</a>
+          <a href="/" className="text-sm text-[#0F172A] hover:text-[#0F172A] transition">← Back to site</a>
         </div>
       </nav>
 
@@ -37,13 +37,13 @@ function Dashboard() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold text-[#0F172A]">Dashboard</h1>
-            <p className="text-slate-500">Manage your venue and shifts.</p>
+            <p className="text-[#0F172A]">Manage your venue and shifts.</p>
           </div>
           <div className="flex gap-2">
-            <a href="/messaging" className="border border-slate-200 text-slate-600 px-4 py-2.5 rounded-lg font-semibold text-sm hover:border-slate-300 transition">
+            <a href="/messaging" className="border border-slate-200 text-[#0F172A] px-4 py-2.5 rounded-lg font-semibold text-sm hover:border-slate-300 transition">
               💬 Messages
             </a>
-            <a href="/admin" className="border border-slate-200 text-slate-600 px-4 py-2.5 rounded-lg font-semibold text-sm hover:border-slate-300 transition">
+            <a href="/admin" className="border border-slate-200 text-[#0F172A] px-4 py-2.5 rounded-lg font-semibold text-sm hover:border-slate-300 transition">
               🛡️ Admin
             </a>
           <a href="/shifts/post" className="bg-[#E8633B] text-white px-5 py-2.5 rounded-lg font-semibold text-sm hover:bg-[#d4552e] transition">
@@ -61,9 +61,9 @@ function Dashboard() {
             ["Trial", "14 days left", "On Starter plan"],
           ].map(([label, value, sub], i) => (
             <div key={i} className="bg-white rounded-xl p-6 shadow-sm">
-              <p className="text-xs text-slate-400 font-medium mb-1">{label}</p>
+              <p className="text-xs text-[#0F172A] font-medium mb-1">{label}</p>
               <p className="text-2xl font-bold text-[#0F172A]">{value}</p>
-              <p className="text-xs text-slate-400 mt-1">{sub}</p>
+              <p className="text-xs text-[#0F172A] mt-1">{sub}</p>
             </div>
           ))}
         </div>
@@ -71,7 +71,7 @@ function Dashboard() {
         {/* CTA card */}
         <div className="bg-[#0F172A] rounded-xl p-8 text-center">
           <h2 className="text-xl font-bold text-white mb-2">Ready to staff your first shift?</h2>
-          <p className="text-slate-300 mb-6">Post a shift and get matched with vetted local bartenders and servers.</p>
+          <p className="text-[#0F172A] mb-6">Post a shift and get matched with vetted local bartenders and servers.</p>
           <div className="flex gap-3 justify-center">
             <a href="/shifts/post" className="inline-block bg-[#E8633B] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#d4552e] transition">
               Post Your First Shift →

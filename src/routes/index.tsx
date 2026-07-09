@@ -23,15 +23,15 @@ function Home() {
         <div className="flex items-center gap-4">
           {isSignedIn ? (
             <>
-              <span className="text-sm text-slate-500">{user?.primaryEmailAddress?.emailAddress}</span>
-              <a href="/worker-dashboard" className="border border-slate-200 text-slate-600 px-4 py-2 rounded-lg font-semibold text-sm hover:border-slate-300 transition">
+              <span className="text-sm text-[#0F172A]">{user?.primaryEmailAddress?.emailAddress}</span>
+              <a href="/worker-dashboard" className="border border-slate-200 text-[#0F172A] px-4 py-2 rounded-lg font-semibold text-sm hover:border-slate-300 transition">
                 My Dashboard
               </a>
-              <button onClick={() => window.location.href = "/auth/sign-in"} className="text-sm text-slate-400 hover:text-[#0F172A] transition">Sign Out</button>
+              <button onClick={() => window.location.href = "/auth/sign-in"} className="text-sm text-[#0F172A] hover:text-[#0F172A] transition">Sign Out</button>
             </>
           ) : (
             <>
-              <a href="/auth/sign-in" className="text-sm font-medium text-slate-600 hover:text-[#0F172A] transition">Sign In</a>
+              <a href="/auth/sign-in" className="text-sm font-medium text-[#0F172A] hover:text-[#0F172A] transition">Sign In</a>
               <a href="/onboarding/business" className="bg-[#E8633B] text-white px-5 py-2 rounded-lg font-semibold text-sm hover:bg-[#d4552e] transition">
                 Join as a Venue
               </a>
@@ -49,7 +49,7 @@ function Home() {
           Staff your shifts in minutes —{" "}
           <span className="text-[#E8633B]">without the agency markup.</span>
         </h1>
-        <p className="text-lg md:text-xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+        <p className="text-lg md:text-xl text-[#0F172A] mb-10 max-w-2xl mx-auto leading-relaxed">
           Roster is the subscription-based network of vetted local bartenders and servers. 
           Post a shift, get matched with pros who already know their craft, and pay a flat 
           monthly fee — zero commission per booking.
@@ -68,22 +68,22 @@ function Home() {
       <section className="bg-[#F8F6F3] px-6 py-20">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-[#0F172A]">Three taps to a full bar.</h2>
-          <p className="text-center text-slate-600 mb-12 max-w-xl mx-auto">Post a shift and get back to running your venue. It's that simple.</p>
+          <p className="text-center text-[#0F172A] mb-12 max-w-xl mx-auto">Post a shift and get back to running your venue. It's that simple.</p>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-white rounded-xl p-8 shadow-sm">
               <div className="w-10 h-10 rounded-full bg-[#E8633B] text-white flex items-center justify-center font-bold text-lg mb-4">1</div>
               <h3 className="text-xl font-bold mb-2">Post</h3>
-              <p className="text-slate-600">Tell us what you need — role, date, time, location. Takes 60 seconds.</p>
+              <p className="text-[#0F172A]">Tell us what you need — role, date, time, location. Takes 60 seconds.</p>
             </div>
             <div className="bg-white rounded-xl p-8 shadow-sm">
               <div className="w-10 h-10 rounded-full bg-[#E8633B] text-white flex items-center justify-center font-bold text-lg mb-4">2</div>
               <h3 className="text-xl font-bold mb-2">Match</h3>
-              <p className="text-slate-600">Our network of pre-vetted local pros sees your shift and applies, or invite the right ones directly.</p>
+              <p className="text-[#0F172A]">Our network of pre-vetted local pros sees your shift and applies, or invite the right ones directly.</p>
             </div>
             <div className="bg-white rounded-xl p-8 shadow-sm">
               <div className="w-10 h-10 rounded-full bg-[#E8633B] text-white flex items-center justify-center font-bold text-lg mb-4">3</div>
               <h3 className="text-xl font-bold mb-2">Pour</h3>
-              <p className="text-slate-600">Your shift is covered. No phone tag, no agency coordinator, no surprise markup.</p>
+              <p className="text-[#0F172A]">Your shift is covered. No phone tag, no agency coordinator, no surprise markup.</p>
             </div>
           </div>
         </div>
@@ -93,22 +93,22 @@ function Home() {
       <section className="px-6 py-20">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-[#0F172A]">Your calendar. Your rates. Your roster.</h2>
-          <p className="text-center text-slate-600 mb-12 max-w-xl mx-auto">Work when you want, where you want, and keep 100% of what you earn.</p>
+          <p className="text-center text-[#0F172A] mb-12 max-w-xl mx-auto">Work when you want, where you want, and keep 100% of what you earn.</p>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="border border-slate-200 rounded-xl p-8">
               <div className="w-10 h-10 rounded-full bg-[#0F172A] text-white flex items-center justify-center font-bold text-lg mb-4">1</div>
               <h3 className="text-xl font-bold mb-2">Create your profile</h3>
-              <p className="text-slate-600">Show your experience, certifications (TIPS, ServSafe), venue preferences, and availability.</p>
+              <p className="text-[#0F172A]">Show your experience, certifications (TIPS, ServSafe), venue preferences, and availability.</p>
             </div>
             <div className="border border-slate-200 rounded-xl p-8">
               <div className="w-10 h-10 rounded-full bg-[#0F172A] text-white flex items-center justify-center font-bold text-lg mb-4">2</div>
               <h3 className="text-xl font-bold mb-2">Browse or accept</h3>
-              <p className="text-slate-600">Shifts appear that match your skills, location, and schedule. Accept with one tap.</p>
+              <p className="text-[#0F172A]">Shifts appear that match your skills, location, and schedule. Accept with one tap.</p>
             </div>
             <div className="border border-slate-200 rounded-xl p-8">
               <div className="w-10 h-10 rounded-full bg-[#0F172A] text-white flex items-center justify-center font-bold text-lg mb-4">3</div>
               <h3 className="text-xl font-bold mb-2">Work and earn</h3>
-              <p className="text-slate-600">Show up, do what you do best, get paid directly. No agency taking a cut. Build relationships.</p>
+              <p className="text-[#0F172A]">Show up, do what you do best, get paid directly. No agency taking a cut. Build relationships.</p>
             </div>
           </div>
           <div className="text-center mt-8">
@@ -123,37 +123,37 @@ function Home() {
       <section className="bg-[#0F172A] px-6 py-20">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-white">Built for hospitality.</h2>
-          <p className="text-center text-slate-300 mb-12 max-w-xl mx-auto">Every feature designed around how venues and staff actually work.</p>
+          <p className="text-center text-[#0F172A] mb-12 max-w-xl mx-auto">Every feature designed around how venues and staff actually work.</p>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="bg-white/10 rounded-xl p-6 backdrop-blur-sm">
               <div className="text-[#E8633B] text-2xl mb-3">💰</div>
               <h3 className="text-white font-bold mb-2">Predictable costs</h3>
-              <p className="text-slate-300 text-sm">One flat membership fee. No 30% per-shift markup. You know your labor budget before you post.</p>
+              <p className="text-[#0F172A] text-sm">One flat membership fee. No 30% per-shift markup. You know your labor budget before you post.</p>
             </div>
             <div className="bg-white/10 rounded-xl p-6 backdrop-blur-sm">
               <div className="text-[#E8633B] text-2xl mb-3">✅</div>
               <h3 className="text-white font-bold mb-2">Vetted, not random</h3>
-              <p className="text-slate-300 text-sm">Every worker has verified experience, real references, and a reputation score from actual shifts on Roster.</p>
+              <p className="text-[#0F172A] text-sm">Every worker has verified experience, real references, and a reputation score from actual shifts on Roster.</p>
             </div>
             <div className="bg-white/10 rounded-xl p-6 backdrop-blur-sm">
               <div className="text-[#E8633B] text-2xl mb-3">🍸</div>
               <h3 className="text-white font-bold mb-2">Built for hospitality</h3>
-              <p className="text-slate-300 text-sm">Role types, certifications, dress codes, shift types, pay ranges — we speak your language.</p>
+              <p className="text-[#0F172A] text-sm">Role types, certifications, dress codes, shift types, pay ranges — we speak your language.</p>
             </div>
             <div className="bg-white/10 rounded-xl p-6 backdrop-blur-sm">
               <div className="text-[#E8633B] text-2xl mb-3">🔄</div>
               <h3 className="text-white font-bold mb-2">Relationships, not transactions</h3>
-              <p className="text-slate-300 text-sm">The same great bartender who crushed your Friday rush can cover your Saturday brunch. Repeat booking built in.</p>
+              <p className="text-[#0F172A] text-sm">The same great bartender who crushed your Friday rush can cover your Saturday brunch. Repeat booking built in.</p>
             </div>
             <div className="bg-white/10 rounded-xl p-6 backdrop-blur-sm">
               <div className="text-[#E8633B] text-2xl mb-3">✂️</div>
               <h3 className="text-white font-bold mb-2">Cancel anytime</h3>
-              <p className="text-slate-300 text-sm">No long-term contracts. Month-to-month or save with annual. Your membership scales with your needs.</p>
+              <p className="text-[#0F172A] text-sm">No long-term contracts. Month-to-month or save with annual. Your membership scales with your needs.</p>
             </div>
             <div className="bg-white/10 rounded-xl p-6 backdrop-blur-sm">
               <div className="text-[#E8633B] text-2xl mb-3">🏆</div>
               <h3 className="text-white font-bold mb-2">Workers keep 100%</h3>
-              <p className="text-slate-300 text-sm">No agency taking a cut of your wage. Free to join, free to work, free to book your next shift.</p>
+              <p className="text-[#0F172A] text-sm">No agency taking a cut of your wage. Free to join, free to work, free to book your next shift.</p>
             </div>
           </div>
         </div>
@@ -163,13 +163,13 @@ function Home() {
       <section className="px-6 py-20">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-[#0F172A]">Why Roster beats agencies</h2>
-          <p className="text-center text-slate-600 mb-12 max-w-xl mx-auto">The old model is broken. Here's how we fixed it.</p>
+          <p className="text-center text-[#0F172A] mb-12 max-w-xl mx-auto">The old model is broken. Here's how we fixed it.</p>
           <div className="overflow-hidden rounded-xl border border-slate-200">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-[#F8F6F3] border-b border-slate-200">
                   <th className="text-left px-6 py-4 font-semibold text-[#0F172A]"></th>
-                  <th className="text-left px-6 py-4 font-semibold text-slate-500">Traditional Agency</th>
+                  <th className="text-left px-6 py-4 font-semibold text-[#0F172A]">Traditional Agency</th>
                   <th className="text-left px-6 py-4 font-semibold text-[#E8633B]">Roster</th>
                 </tr>
               </thead>
@@ -183,7 +183,7 @@ function Home() {
                 ].map(([feature, agency, roster], i) => (
                   <tr key={i} className="border-b border-slate-100">
                     <td className="px-6 py-4 font-semibold text-[#0F172A]">{feature}</td>
-                    <td className="px-6 py-4 text-slate-500">{agency}</td>
+                    <td className="px-6 py-4 text-[#0F172A]">{agency}</td>
                     <td className="px-6 py-4 text-[#E8633B] font-medium">{roster}</td>
                   </tr>
                 ))}
@@ -197,7 +197,7 @@ function Home() {
       <section className="bg-[#F8F6F3] px-6 py-20">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-[#0F172A]">Every shift. Every pro. Verified.</h2>
-          <p className="text-center text-slate-600 mb-12 max-w-xl mx-auto">Trust isn't optional in hospitality. Here's how we build it.</p>
+          <p className="text-center text-[#0F172A] mb-12 max-w-xl mx-auto">Trust isn't optional in hospitality. Here's how we build it.</p>
           <div className="grid md:grid-cols-5 gap-4">
             {[
               ["🪪", "ID & Background Verified", "Every worker completes identity verification before their first shift."],
@@ -209,7 +209,7 @@ function Home() {
               <div key={i} className="bg-white rounded-xl p-6 shadow-sm text-center">
                 <div className="text-3xl mb-3">{icon}</div>
                 <h3 className="font-bold text-sm mb-1 text-[#0F172A]">{title}</h3>
-                <p className="text-xs text-slate-500">{desc}</p>
+                <p className="text-xs text-[#0F172A]">{desc}</p>
               </div>
             ))}
           </div>
@@ -220,32 +220,32 @@ function Home() {
       <section className="px-6 py-20">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-[#0F172A]">Transparent pricing. One flat fee.</h2>
-          <p className="text-slate-600 mb-10">No per-booking commissions. No hidden fees. No surprise invoices.</p>
+          <p className="text-[#0F172A] mb-10">No per-booking commissions. No hidden fees. No surprise invoices.</p>
           <div className="grid md:grid-cols-3 gap-6 max-w-3xl mx-auto">
             <div className="border border-slate-200 rounded-xl p-8 text-center">
               <h3 className="font-bold text-xl mb-2">Starter</h3>
-              <p className="text-slate-500 text-sm mb-4">For small venues filling 1–5 shifts/mo</p>
-              <p className="text-4xl font-bold text-[#0F172A] mb-2">$99<span className="text-lg text-slate-400 font-normal">/mo</span></p>
-              <p className="text-sm text-slate-400 mb-6">or $79/mo billed annually</p>
+              <p className="text-[#0F172A] text-sm mb-4">For small venues filling 1–5 shifts/mo</p>
+              <p className="text-4xl font-bold text-[#0F172A] mb-2">$99<span className="text-lg text-[#0F172A] font-normal">/mo</span></p>
+              <p className="text-sm text-[#0F172A] mb-6">or $79/mo billed annually</p>
               <a href="/auth/sign-up" className="block w-full border-2 border-[#0F172A] text-[#0F172A] px-4 py-2 rounded-lg font-semibold text-sm hover:bg-[#0F172A] hover:text-white transition">Get Started</a>
             </div>
             <div className="border-2 border-[#E8633B] rounded-xl p-8 text-center relative">
               <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#E8633B] text-white px-4 py-0.5 rounded-full text-xs font-semibold">Most Popular</span>
               <h3 className="font-bold text-xl mb-2">Pro</h3>
-              <p className="text-slate-500 text-sm mb-4">For busy venues filling 5–20 shifts/mo</p>
-              <p className="text-4xl font-bold text-[#0F172A] mb-2">$249<span className="text-lg text-slate-400 font-normal">/mo</span></p>
-              <p className="text-sm text-slate-400 mb-6">or $199/mo billed annually</p>
+              <p className="text-[#0F172A] text-sm mb-4">For busy venues filling 5–20 shifts/mo</p>
+              <p className="text-4xl font-bold text-[#0F172A] mb-2">$249<span className="text-lg text-[#0F172A] font-normal">/mo</span></p>
+              <p className="text-sm text-[#0F172A] mb-6">or $199/mo billed annually</p>
               <a href="/auth/sign-up" className="block w-full bg-[#E8633B] text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-[#d4552e] transition">Get Started</a>
             </div>
             <div className="border border-slate-200 rounded-xl p-8 text-center">
               <h3 className="font-bold text-xl mb-2">Enterprise</h3>
-              <p className="text-slate-500 text-sm mb-4">For multi-location & high-volume</p>
+              <p className="text-[#0F172A] text-sm mb-4">For multi-location & high-volume</p>
               <p className="text-4xl font-bold text-[#0F172A] mb-2">Custom</p>
-              <p className="text-sm text-slate-400 mb-6">Contact us for pricing</p>
+              <p className="text-sm text-[#0F172A] mb-6">Contact us for pricing</p>
               <a href="#" className="block w-full border-2 border-[#0F172A] text-[#0F172A] px-4 py-2 rounded-lg font-semibold text-sm hover:bg-[#0F172A] hover:text-white transition">Contact Sales</a>
             </div>
           </div>
-          <p className="mt-8 text-sm text-slate-500">Workers join free. Always. No membership fee, no commission.</p>
+          <p className="mt-8 text-sm text-[#0F172A]">Workers join free. Always. No membership fee, no commission.</p>
         </div>
       </section>
 
@@ -268,7 +268,7 @@ function Home() {
                   {q}
                   <span className="text-[#E8633B] text-xl group-open:rotate-45 transition-transform">+</span>
                 </summary>
-                <p className="mt-3 text-slate-600 text-sm leading-relaxed">{a}</p>
+                <p className="mt-3 text-[#0F172A] text-sm leading-relaxed">{a}</p>
               </details>
             ))}
           </div>
@@ -279,7 +279,7 @@ function Home() {
       <section className="bg-[#0F172A] px-6 py-20 text-center">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Stop overpaying for staffing. Start building your roster.</h2>
-          <p className="text-slate-300 mb-8 max-w-lg mx-auto">Join hundreds of venues that have replaced their staffing agency with a flat monthly membership.</p>
+          <p className="text-[#0F172A] mb-8 max-w-lg mx-auto">Join hundreds of venues that have replaced their staffing agency with a flat monthly membership.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a href="/auth/sign-up" className="inline-block bg-[#E8633B] text-white px-10 py-3.5 rounded-lg font-bold text-lg hover:bg-[#d4552e] transition shadow-lg shadow-[#E8633B]/25">
               Get Started →
@@ -302,8 +302,8 @@ function Home() {
             </svg>
             <span className="font-bold text-sm tracking-tight">Roster</span>
           </div>
-          <p className="text-xs text-slate-400">© 2026 Roster. All rights reserved.</p>
-          <div className="flex gap-4 text-xs text-slate-400">
+          <p className="text-xs text-[#0F172A]">© 2026 Roster. All rights reserved.</p>
+          <div className="flex gap-4 text-xs text-[#0F172A]">
             <a href="/privacy" className="hover:text-[#0F172A] transition">Privacy</a>
             <a href="/terms" className="hover:text-[#0F172A] transition">Terms</a>
             <a href="#" className="hover:text-[#0F172A] transition">Contact</a>

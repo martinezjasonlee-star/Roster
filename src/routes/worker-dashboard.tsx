@@ -9,7 +9,7 @@ export const Route = createFileRoute("/worker-dashboard")({
 function WorkerDashboard() {
   const { isLoaded, isSignedIn } = useAuth();
   useEffect(() => { if (isLoaded && !isSignedIn) window.location.href = "/auth/sign-in"; }, [isLoaded, isSignedIn]);
-  if (!isLoaded) return <div className="min-h-screen bg-[#F8F6F3] flex items-center justify-center"><p className="text-slate-400">Loading...</p></div>;
+  if (!isLoaded) return <div className="min-h-screen bg-[#F8F6F3] flex items-center justify-center"><p className="text-[#0F172A]">Loading...</p></div>;
   if (!isSignedIn) return null;
 
   return (
@@ -24,7 +24,7 @@ function WorkerDashboard() {
             </svg>
             <span className="font-bold text-lg tracking-tight">Roster</span>
           </div>
-          <a href="/" className="text-sm text-slate-500 hover:text-[#0F172A] transition">← Back to site</a>
+          <a href="/" className="text-sm text-[#0F172A] hover:text-[#0F172A] transition">← Back to site</a>
         </div>
       </nav>
 
@@ -32,10 +32,10 @@ function WorkerDashboard() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold text-[#0F172A]">My Shifts</h1>
-            <p className="text-slate-500">Find and manage your shifts.</p>
+            <p className="text-[#0F172A]">Find and manage your shifts.</p>
           </div>
           <div className="flex gap-2">
-            <a href="/messaging" className="border border-slate-200 text-slate-600 px-4 py-2.5 rounded-lg font-semibold text-sm hover:border-slate-300 transition">
+            <a href="/messaging" className="border border-slate-200 text-[#0F172A] px-4 py-2.5 rounded-lg font-semibold text-sm hover:border-slate-300 transition">
               💬 Messages
             </a>
             <a href="/shifts/browse" className="bg-[#E8633B] text-white px-5 py-2.5 rounded-lg font-semibold text-sm hover:bg-[#d4552e] transition">
@@ -51,16 +51,16 @@ function WorkerDashboard() {
             ["Completed", "0", "Your shift history"],
           ].map(([label, value, sub], i) => (
             <div key={i} className="bg-white rounded-xl p-6 shadow-sm">
-              <p className="text-xs text-slate-400 font-medium mb-1">{label}</p>
+              <p className="text-xs text-[#0F172A] font-medium mb-1">{label}</p>
               <p className="text-2xl font-bold text-[#0F172A]">{value}</p>
-              <p className="text-xs text-slate-400 mt-1">{sub}</p>
+              <p className="text-xs text-[#0F172A] mt-1">{sub}</p>
             </div>
           ))}
         </div>
 
         <div className="bg-[#0F172A] rounded-xl p-8 text-center">
           <h2 className="text-xl font-bold text-white mb-2">Your profile is live</h2>
-          <p className="text-slate-300 mb-6">Venues in Denver-Boulder can now find you. Shifts will appear here when venues post them.</p>
+          <p className="text-[#0F172A] mb-6">Venues in Denver-Boulder can now find you. Shifts will appear here when venues post them.</p>
           <div className="flex gap-3 justify-center">
             <a href="/shifts/browse" className="inline-block bg-[#E8633B] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#d4552e] transition">Browse Shifts</a>
             <a href="/messaging" className="inline-block border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/10 transition">Messages</a>

@@ -48,7 +48,7 @@ function BusinessOnboarding() {
     }
   }, [isLoaded, isSignedIn]);
 
-  if (!isLoaded) return <div className="min-h-screen bg-[#F8F6F3] flex items-center justify-center"><p className="text-slate-400">Loading...</p></div>;
+  if (!isLoaded) return <div className="min-h-screen bg-[#F8F6F3] flex items-center justify-center"><p className="text-[#0F172A]">Loading...</p></div>;
   if (!isSignedIn) return null;
   if (done) {
     return (
@@ -56,7 +56,7 @@ function BusinessOnboarding() {
         <div className="bg-white rounded-xl p-8 shadow-lg max-w-lg w-full text-center">
           <div className="text-5xl mb-4">🎉</div>
           <h1 className="text-2xl font-bold text-[#0F172A] mb-2">Your venue is set up!</h1>
-          <p className="text-slate-500 mb-6">Your 14-day free trial has started. You're on the <strong className="text-[#0F172A] capitalize">{form.plan}</strong> plan.</p>
+          <p className="text-[#0F172A] mb-6">Your 14-day free trial has started. You're on the <strong className="text-[#0F172A] capitalize">{form.plan}</strong> plan.</p>
           <a href="/dashboard" className="inline-block bg-[#E8633B] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#d4552e] transition">Go to Dashboard →</a>
         </div>
       </div>
@@ -92,8 +92,8 @@ function BusinessOnboarding() {
             <rect x="0" y="19" width="12" height="4" rx="2" fill="#E8633B"/>
           </svg>
           <span className="font-bold text-lg tracking-tight">Roster</span>
-          <span className="text-slate-300 mx-2">/</span>
-          <span className="text-sm text-slate-500">Set up your venue</span>
+          <span className="text-[#0F172A] mx-2">/</span>
+          <span className="text-sm text-[#0F172A]">Set up your venue</span>
         </div>
       </div>
 
@@ -103,9 +103,9 @@ function BusinessOnboarding() {
           {[1, 2].map((s) => (
             <div key={s} className="flex items-center gap-2">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                step >= s ? "bg-[#E8633B] text-white" : "bg-slate-200 text-slate-400"
+                step >= s ? "bg-[#E8633B] text-white" : "bg-slate-200 text-[#0F172A]"
               }`}>{s}</div>
-              <span className={`text-sm ${step >= s ? "text-[#0F172A] font-medium" : "text-slate-400"}`}>
+              <span className={`text-sm ${step >= s ? "text-[#0F172A] font-medium" : "text-[#0F172A]"}`}>
                 {s === 1 ? "Venue Details" : "Plan & Confirm"}
               </span>
               {s < 2 && <div className="w-12 h-0.5 bg-slate-200 mx-2"/>}
@@ -117,7 +117,7 @@ function BusinessOnboarding() {
         {step === 1 && (
           <div className="bg-white rounded-xl p-8 shadow-sm">
             <h1 className="text-2xl font-bold text-[#0F172A] mb-1">Tell us about your venue</h1>
-            <p className="text-slate-500 mb-6">Set up your Roster profile so workers know who they're working with.</p>
+            <p className="text-[#0F172A] mb-6">Set up your Roster profile so workers know who they're working with.</p>
             
             <div className="space-y-4">
               <div>
@@ -178,7 +178,7 @@ function BusinessOnboarding() {
           <div className="space-y-6">
             <div className="bg-white rounded-xl p-8 shadow-sm">
               <h1 className="text-2xl font-bold text-[#0F172A] mb-1">Choose your plan</h1>
-              <p className="text-slate-500 mb-6">Start with a 14-day free trial. No credit card needed for the first 7 days.</p>
+              <p className="text-[#0F172A] mb-6">Start with a 14-day free trial. No credit card needed for the first 7 days.</p>
 
               <div className="grid md:grid-cols-2 gap-4 mb-6">
                 {[
@@ -200,9 +200,9 @@ function BusinessOnboarding() {
                       </div>
                       <h3 className="font-bold text-lg">{plan.name}</h3>
                     </div>
-                    <p className="text-3xl font-bold text-[#0F172A] mb-1">{plan.price}<span className="text-base text-slate-400 font-normal">/mo</span></p>
-                    <p className="text-sm text-slate-500">{plan.desc}</p>
-                    <p className="text-xs text-slate-400 mt-2">or {(parseInt(plan.price) * 0.8).toFixed(0)}/mo billed annually</p>
+                    <p className="text-3xl font-bold text-[#0F172A] mb-1">{plan.price}<span className="text-base text-[#0F172A] font-normal">/mo</span></p>
+                    <p className="text-sm text-[#0F172A]">{plan.desc}</p>
+                    <p className="text-xs text-[#0F172A] mt-2">or {(parseInt(plan.price) * 0.8).toFixed(0)}/mo billed annually</p>
                   </div>
                 ))}
               </div>
@@ -211,11 +211,11 @@ function BusinessOnboarding() {
             <div className="bg-white rounded-xl p-8 shadow-sm">
               <h2 className="font-bold text-[#0F172A] mb-4">Summary</h2>
               <div className="space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-slate-500">Venue</span><span className="font-medium">{form.name || "—"}</span></div>
-                <div className="flex justify-between"><span className="text-slate-500">Plan</span><span className="font-medium capitalize">{form.plan} — {form.plan === "starter" ? "$99/mo" : "$249/mo"}</span></div>
-                <div className="flex justify-between"><span className="text-slate-500">Trial</span><span className="font-medium">14 days free</span></div>
+                <div className="flex justify-between"><span className="text-[#0F172A]">Venue</span><span className="font-medium">{form.name || "—"}</span></div>
+                <div className="flex justify-between"><span className="text-[#0F172A]">Plan</span><span className="font-medium capitalize">{form.plan} — {form.plan === "starter" ? "$99/mo" : "$249/mo"}</span></div>
+                <div className="flex justify-between"><span className="text-[#0F172A]">Trial</span><span className="font-medium">14 days free</span></div>
                 <div className="border-t border-slate-100 pt-2 mt-2 flex justify-between">
-                  <span className="text-slate-500">First charge</span>
+                  <span className="text-[#0F172A]">First charge</span>
                   <span className="font-bold">Day 15 — ${form.plan === "starter" ? "99" : "249"}</span>
                 </div>
               </div>

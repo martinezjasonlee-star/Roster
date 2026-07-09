@@ -13,7 +13,7 @@ function SignInPage() {
           <h1 className="text-2xl font-bold text-[#0F172A]">Welcome back</h1>
           <p className="text-slate-500 mt-1">Sign in to Roster</p>
         </div>
-        <SignIn routing="hash" signUpUrl="/auth/sign-up" />
+        <SignIn routing="path" path="/auth/sign-in" signUpUrl="/auth/sign-up" />
       </div>
     </div>
   );

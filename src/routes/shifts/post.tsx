@@ -24,7 +24,7 @@ const SHIFT_TYPES = ["opening", "closing", "brunch", "lunch", "dinner", "private
 const DRESS_CODES = ["all_black", "uniform_provided", "black_on_black", "business_casual", "theme_costume", "any"];
 
 function PostShift() {
-  const { isSignedIn, userId } = useAuth();
+  const { isLoaded, isSignedIn, userId } = useAuth();
   const [form, setForm] = useState({
     role_type: "bartender",
     shift_type: "dinner",
@@ -44,8 +44,8 @@ function PostShift() {
   const [shiftId, setShiftId] = useState("");
 
   useEffect(() => {
-    if (!isSignedIn) window.location.href = "/auth/sign-in";
-  }, [isSignedIn]);
+    if (isLoaded && !isSignedIn) window.location.href = "/auth/sign-in";
+  }, [isLoaded, isSignedIn]);
 
   const update = (field: string, value: any) => setForm(f => ({ ...f, [field]: value }));
 
@@ -59,6 +59,7 @@ function PostShift() {
     setSaving(false);
   };
 
+  if (!isLoaded) return <div className="min-h-screen bg-[#F8F6F3] flex items-center justify-center"><p className="text-[#0F172A]">Loading...</p></div>;
   if (!isSignedIn) return null;
 
   if (done) {

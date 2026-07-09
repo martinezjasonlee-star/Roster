@@ -25,15 +25,15 @@ export const Route = createFileRoute("/messaging")({
 });
 
 function Messaging() {
-  const { isSignedIn, userId } = useAuth();
+  const { isLoaded, isSignedIn, userId } = useAuth();
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!isSignedIn) window.location.href = "/auth/sign-in";
-  }, [isSignedIn]);
+    if (isLoaded && !isSignedIn) window.location.href = "/auth/sign-in";
+  }, [isLoaded, isSignedIn]);
 
   useEffect(() => {
     if (!userId) return;
@@ -67,6 +67,7 @@ function Messaging() {
     setSending(false);
   };
 
+  if (!isLoaded) return <div className="min-h-screen bg-[#F8F6F3] flex items-center justify-center"><p className="text-[#0F172A]">Loading...</p></div>;
   if (!isSignedIn) return null;
 
   return (

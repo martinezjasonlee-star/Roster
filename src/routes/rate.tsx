@@ -17,7 +17,7 @@ export const Route = createFileRoute("/rate")({
 });
 
 function RatingPage() {
-  const { isSignedIn, userId } = useAuth();
+  const { isLoaded, isSignedIn, userId } = useAuth();
   const [bookingId, setBookingId] = useState("");
   const [score, setScore] = useState(5);
   const [review, setReview] = useState("");
@@ -25,8 +25,8 @@ function RatingPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!isSignedIn) window.location.href = "/auth/sign-in";
-  }, [isSignedIn]);
+    if (isLoaded && !isSignedIn) window.location.href = "/auth/sign-in";
+  }, [isLoaded, isSignedIn]);
 
   const handleSubmit = async () => {
     if (!bookingId || !userId) return;
@@ -48,6 +48,7 @@ function RatingPage() {
     setSaving(false);
   };
 
+  if (!isLoaded) return <div className="min-h-screen bg-[#F8F6F3] flex items-center justify-center"><p className="text-[#0F172A]">Loading...</p></div>;
   if (!isSignedIn) return null;
 
   if (submitted) {

@@ -188,7 +188,7 @@ function WorkerOnboarding() {
                     { id: "barback", label: "Barback" },
                   ].map(r => (
                     <div key={r.id} onClick={() => update("role_type", r.id)}
-                      className={`border-2 rounded-lg p-3 text-center cursor-pointer transition text-sm font-medium ${
+                      className={`border-2 rounded-lg p-3 text-center cursor-pointer transition text-sm font-medium text-[#0F172A] ${
                         form.role_type === r.id ? "border-[#E8633B] bg-[#E8633B]/5" : "border-slate-200 hover:border-slate-300"
                       }`}>{r.label}</div>
                   ))}
@@ -216,7 +216,7 @@ function WorkerOnboarding() {
                     { id: "banquet", label: "Banquets / Events" },
                   ].map(s => (
                     <div key={s.id} onClick={() => toggleServiceStyle(s.id)}
-                      className={`border-2 rounded-lg p-3 text-center cursor-pointer transition text-sm font-medium ${
+                      className={`border-2 rounded-lg p-3 text-center cursor-pointer transition text-sm font-medium text-[#0F172A] ${
                         form.service_styles.includes(s.id) ? "border-[#E8633B] bg-[#E8633B]/5" : "border-slate-200 hover:border-slate-300"
                       }`}>{s.label}</div>
                   ))}
@@ -253,7 +253,7 @@ function WorkerOnboarding() {
                 { id: "state_alcohol_co", name: "Colorado Alcohol Server", desc: "State-mandated CO certification" },
               ].map(cert => (
                 <div key={cert.id} onClick={() => toggleCert(cert.id)}
-                  className={`border-2 rounded-lg p-4 cursor-pointer transition flex items-center gap-3 ${
+                  className={`border-2 rounded-lg p-4 cursor-pointer transition flex items-center gap-3 text-[#0F172A] ${
                     form.certs.includes(cert.id) ? "border-[#E8633B] bg-[#E8633B]/5" : "border-slate-200 hover:border-slate-300"
                   }`}>
                   <div className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${

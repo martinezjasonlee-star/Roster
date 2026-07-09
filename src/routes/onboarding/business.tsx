@@ -186,7 +186,7 @@ function BusinessOnboarding() {
                   { id: "pro", name: "Pro", price: "$249", desc: "For busy venues filling 5–20 shifts/mo", popular: true },
                 ].map((plan) => (
                   <div key={plan.id} onClick={() => update("plan", plan.id)}
-                    className={`relative border-2 rounded-xl p-6 cursor-pointer transition ${
+                    className={`relative border-2 rounded-xl p-6 cursor-pointer transition text-[#0F172A] ${
                       form.plan === plan.id ? "border-[#E8633B]" : "border-slate-200 hover:border-slate-300"
                     }`}>
                     {plan.popular && (

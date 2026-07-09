@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 
 const getShifts = createServerFn({ method: "GET" }).handler(async () => {
   const { execSync } = await import("node:child_process");
-  const result = execSync(`team-db "SELECT id, role_type, shift_type, date, start_time, end_time, hourly_rate, dress_code, notes, location_name, workers_needed, created_at FROM shifts WHERE status='open' ORDER BY date ASC LIMIT 50"`);
+  const result = execSync(`/home/agent-lead/.local/bin/team-db "SELECT id, role_type, shift_type, date, start_time, end_time, hourly_rate, dress_code, notes, location_name, workers_needed, created_at FROM shifts WHERE status='open' ORDER BY date ASC LIMIT 50"`);
   return JSON.parse(result.toString());
 });
 
@@ -14,7 +14,7 @@ const applyToShift = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { execSync } = await import("node:child_process");
     const id = crypto.randomUUID();
-    execSync(`team-db "INSERT INTO bookings (id, shift_id, worker_id, business_id, status) VALUES ('${id}', '${data.shiftId}', '${data.workerId}', '${data.businessId || "pending"}', 'pending')"`);
+    execSync(`/home/agent-lead/.local/bin/team-db "INSERT INTO bookings (id, shift_id, worker_id, business_id, status) VALUES ('${id}', '${data.shiftId}', '${data.workerId}', '${data.businessId || "pending"}', 'pending')"`);
     return { success: true, bookingId: id };
   });
 
@@ -24,16 +24,17 @@ export const Route = createFileRoute("/shifts/browse")({
 });
 
 function BrowseShifts() {
-  const { isSignedIn, userId } = useAuth();
+  const { isLoaded, isSignedIn, userId } = useAuth();
   const shifts = Route.useLoaderData() as any[];
   const [applying, setApplying] = useState<string | null>(null);
   const [applied, setApplied] = useState<string[]>([]);
   const [roleFilter, setRoleFilter] = useState("all");
 
   useEffect(() => {
-    if (!isSignedIn) window.location.href = "/auth/sign-in";
-  }, [isSignedIn]);
+    if (isLoaded && !isSignedIn) window.location.href = "/auth/sign-in";
+  }, [isLoaded, isSignedIn]);
 
+  if (!isLoaded) return <div className="min-h-screen bg-[#F8F6F3] flex items-center justify-center"><p className="text-[#0F172A]">Loading...</p></div>;
   if (!isSignedIn) return null;
 
   const filtered = roleFilter === "all" ? shifts : shifts.filter((s: any) => s.role_type === roleFilter);

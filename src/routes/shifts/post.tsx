@@ -8,7 +8,7 @@ const saveShift = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { execSync } = await import("node:child_process");
     const id = crypto.randomUUID();
-    execSync(`team-db "INSERT INTO shifts (id, business_id, role_type, status, shift_type, date, start_time, end_time, workers_needed, hourly_rate, tips_included, pay_type, dress_code, certifications_required, notes, location_name) VALUES ('${id}', '${data.business_id}', '${data.role_type}', 'open', '${data.shift_type}', '${data.date}', '${data.start_time}', '${data.end_time}', ${data.workers_needed}, ${data.hourly_rate}, 1, 'hourly_plus_tips', '${data.dress_code}', '${data.certs_required}', '${data.notes.replace(/'/g, "''")}', '${data.location_name.replace(/'/g, "''")}')"`);
+    execSync(`/home/agent-lead/.local/bin/team-db "INSERT INTO shifts (id, business_id, role_type, status, shift_type, date, start_time, end_time, workers_needed, hourly_rate, tips_included, pay_type, dress_code, certifications_required, notes, location_name) VALUES ('${id}', '${data.business_id}', '${data.role_type}', 'open', '${data.shift_type}', '${data.date}', '${data.start_time}', '${data.end_time}', ${data.workers_needed}, ${data.hourly_rate}, 1, 'hourly_plus_tips', '${data.dress_code}', '${data.certs_required}', '${data.notes.replace(/'/g, "''")}', '${data.location_name.replace(/'/g, "''")}')"`);
     return { success: true, shiftId: id };
   });
 

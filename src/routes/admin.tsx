@@ -4,14 +4,14 @@ import { useState } from "react";
 
 const getStats = createServerFn({ method: "GET" }).handler(async () => {
   const { execSync } = await import("node:child_process");
-  const businesses = JSON.parse(execSync(`team-db "SELECT COUNT(*) as count FROM businesses"`).toString());
-  const workers = JSON.parse(execSync(`team-db "SELECT COUNT(*) as count FROM workers"`).toString());
-  const shifts = JSON.parse(execSync(`team-db "SELECT COUNT(*) as count FROM shifts"`).toString());
-  const bookings = JSON.parse(execSync(`team-db "SELECT COUNT(*) as count FROM bookings"`).toString());
-  const messages = JSON.parse(execSync(`team-db "SELECT COUNT(*) as count FROM messages"`).toString());
-  const recentShifts = JSON.parse(execSync(`team-db "SELECT id, role_type, date, status, created_at FROM shifts ORDER BY created_at DESC LIMIT 10"`).toString());
-  const recentWorkers = JSON.parse(execSync(`team-db "SELECT id, first_name, last_name, role_type, is_verified FROM workers ORDER BY created_at DESC LIMIT 10"`).toString());
-  const recentBusinesses = JSON.parse(execSync(`team-db "SELECT id, name, venue_type, membership_tier, membership_status FROM businesses ORDER BY created_at DESC LIMIT 10"`).toString());
+  const businesses = JSON.parse(execSync(`/home/agent-lead/.local/bin/team-db "SELECT COUNT(*) as count FROM businesses"`).toString());
+  const workers = JSON.parse(execSync(`/home/agent-lead/.local/bin/team-db "SELECT COUNT(*) as count FROM workers"`).toString());
+  const shifts = JSON.parse(execSync(`/home/agent-lead/.local/bin/team-db "SELECT COUNT(*) as count FROM shifts"`).toString());
+  const bookings = JSON.parse(execSync(`/home/agent-lead/.local/bin/team-db "SELECT COUNT(*) as count FROM bookings"`).toString());
+  const messages = JSON.parse(execSync(`/home/agent-lead/.local/bin/team-db "SELECT COUNT(*) as count FROM messages"`).toString());
+  const recentShifts = JSON.parse(execSync(`/home/agent-lead/.local/bin/team-db "SELECT id, role_type, date, status, created_at FROM shifts ORDER BY created_at DESC LIMIT 10"`).toString());
+  const recentWorkers = JSON.parse(execSync(`/home/agent-lead/.local/bin/team-db "SELECT id, first_name, last_name, role_type, is_verified FROM workers ORDER BY created_at DESC LIMIT 10"`).toString());
+  const recentBusinesses = JSON.parse(execSync(`/home/agent-lead/.local/bin/team-db "SELECT id, name, venue_type, membership_tier, membership_status FROM businesses ORDER BY created_at DESC LIMIT 10"`).toString());
   return { stats: { businesses, workers, shifts, bookings, messages }, recentShifts, recentWorkers, recentBusinesses };
 });
 
@@ -19,7 +19,7 @@ const verifyWorker = createServerFn({ method: "POST" })
   .validator((data: { workerId: string }) => data)
   .handler(async ({ data }) => {
     const { execSync } = await import("node:child_process");
-    execSync(`team-db "UPDATE workers SET is_verified=1 WHERE id='${data.workerId}'"`);
+    execSync(`/home/agent-lead/.local/bin/team-db "UPDATE workers SET is_verified=1 WHERE id='${data.workerId}'"`);
     return { success: true };
   });
 

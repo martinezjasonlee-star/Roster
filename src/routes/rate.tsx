@@ -74,7 +74,7 @@ function RatingPage() {
           <div>
             <label className="block text-sm font-medium text-[#0F172A] mb-1">Booking ID</label>
             <input type="text" value={bookingId} onChange={e => setBookingId(e.target.value)}
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg" placeholder="Enter booking ID" />
+              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-[#0F172A]" placeholder="Enter booking ID" />
           </div>
           <div>
             <label className="block text-sm font-medium text-[#0F172A] mb-2">Rating</label>
@@ -90,7 +90,7 @@ function RatingPage() {
           <div>
             <label className="block text-sm font-medium text-[#0F172A] mb-1">Review (optional)</label>
             <textarea value={review} onChange={e => setReview(e.target.value)} rows={3}
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg"
+              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-[#0F172A]"
               placeholder="Punctual, skilled, great attitude..." />
           </div>
           <button onClick={handleSubmit} disabled={saving || !bookingId}

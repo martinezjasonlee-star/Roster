@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="210" height="210" viewBox="0 0 210 210">
+  <rect width="210" height="210" fill="white"/>
+  <g transform="translate(15,15)"><rect width="180" height="180" fill="white"/>
+    <g transform="translate(0,0)">
+      <path d="M0 0h180v180H0z" fill="none"/>
+      <g transform="scale(2.5)">
+        <path d="M0 0h72v72H0z" fill="none"/>
+        <g transform="translate(33,30)">
+          <rect x="0" y="0" width="8" height="2" rx="1" fill="black"/>
+          <rect x="0" y="3" width="6" height="2" rx="1" fill="black"/>
+          <rect x="0" y="6" width="5" height="2" rx="1" fill="#E8633B"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

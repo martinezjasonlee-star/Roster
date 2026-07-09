@@ -28,7 +28,7 @@ export const Route = createFileRoute("/onboarding/business")({
 });
 
 function BusinessOnboarding() {
-  const { userId, isSignedIn } = useAuth();
+  const { userId, isLoaded, isSignedIn } = useAuth();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
     name: "",
@@ -43,11 +43,12 @@ function BusinessOnboarding() {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    if (!isSignedIn) {
+    if (isLoaded && !isSignedIn) {
       window.location.href = "/auth/sign-up";
     }
-  }, [isSignedIn]);
+  }, [isLoaded, isSignedIn]);
 
+  if (!isLoaded) return <div className="min-h-screen bg-[#F8F6F3] flex items-center justify-center"><p className="text-slate-400">Loading...</p></div>;
   if (!isSignedIn) return null;
   if (done) {
     return (

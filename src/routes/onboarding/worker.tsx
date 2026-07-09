@@ -43,7 +43,7 @@ export const Route = createFileRoute("/onboarding/worker")({
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 function WorkerOnboarding() {
-  const { userId, isSignedIn } = useAuth();
+  const { userId, isLoaded, isSignedIn } = useAuth();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
     first_name: "",
@@ -61,9 +61,10 @@ function WorkerOnboarding() {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    if (!isSignedIn) window.location.href = "/auth/sign-up";
-  }, [isSignedIn]);
+    if (isLoaded && !isSignedIn) window.location.href = "/auth/sign-up";
+  }, [isLoaded, isSignedIn]);
 
+  if (!isLoaded) return <div className="min-h-screen bg-[#F8F6F3] flex items-center justify-center"><p className="text-slate-400">Loading...</p></div>;
   if (!isSignedIn) return null;
 
   if (done) {

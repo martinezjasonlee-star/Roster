@@ -1,10 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useAuth, useUser } from "@clerk/clerk-react";
 
 export const Route = createFileRoute("/")({
   component: Home,
 });
 
 function Home() {
+  const { isSignedIn, userId } = useAuth();
+  const { user } = useUser();
   return (
     <div className="min-h-screen bg-white font-sans text-[#0F172A]">
       {/* Navigation */}
@@ -18,10 +21,22 @@ function Home() {
           <span className="font-bold text-xl tracking-tight">Roster</span>
         </div>
         <div className="flex items-center gap-4">
-          <a href="/auth/sign-in" className="text-sm font-medium text-slate-600 hover:text-[#0F172A] transition">Sign In</a>
-          <a href="/onboarding/business" className="bg-[#E8633B] text-white px-5 py-2 rounded-lg font-semibold text-sm hover:bg-[#d4552e] transition">
-            Join as a Venue
-          </a>
+          {isSignedIn ? (
+            <>
+              <span className="text-sm text-slate-500">{user?.primaryEmailAddress?.emailAddress}</span>
+              <a href="/worker-dashboard" className="border border-slate-200 text-slate-600 px-4 py-2 rounded-lg font-semibold text-sm hover:border-slate-300 transition">
+                My Dashboard
+              </a>
+              <button onClick={() => window.location.href = "/auth/sign-in"} className="text-sm text-slate-400 hover:text-[#0F172A] transition">Sign Out</button>
+            </>
+          ) : (
+            <>
+              <a href="/auth/sign-in" className="text-sm font-medium text-slate-600 hover:text-[#0F172A] transition">Sign In</a>
+              <a href="/onboarding/business" className="bg-[#E8633B] text-white px-5 py-2 rounded-lg font-semibold text-sm hover:bg-[#d4552e] transition">
+                Join as a Venue
+              </a>
+            </>
+          )}
         </div>
       </nav>
 

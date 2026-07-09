@@ -11,7 +11,7 @@ const saveWorker = createServerFn({ method: "POST" })
     phone: string;
     role_type: string;
     years_experience: number;
-    service_style: string;
+    service_styles: string[];
     travel_radius: number;
     city: string;
     certs: string[];
@@ -21,7 +21,7 @@ const saveWorker = createServerFn({ method: "POST" })
     const { execSync } = await import("node:child_process");
     const workerId = crypto.randomUUID();
 
-    execSync(`team-db "INSERT INTO workers (id, email, first_name, last_name, phone, role_type, years_experience, service_style, travel_radius, city, state, is_verified) VALUES ('${workerId}', '${data.email.replace(/'/g, "''")}', '${data.first_name.replace(/'/g, "''")}', '${data.last_name.replace(/'/g, "''")}', '${data.phone.replace(/'/g, "''")}', '${data.role_type}', ${data.years_experience}, '${data.service_style.replace(/'/g, "''")}', ${data.travel_radius}, '${data.city.replace(/'/g, "''")}', 'CO', 0)"`);
+    execSync(`team-db "INSERT INTO workers (id, email, first_name, last_name, phone, role_type, years_experience, service_style, travel_radius, city, state, is_verified) VALUES ('${workerId}', '${data.email.replace(/'/g, "''")}', '${data.first_name.replace(/'/g, "''")}', '${data.last_name.replace(/'/g, "''")}', '${data.phone.replace(/'/g, "''")}', '${data.role_type}', ${data.years_experience}, '${data.service_styles.join(",")}', ${data.travel_radius}, '${data.city.replace(/'/g, "''")}', 'CO', 0)"`);
 
     for (const certId of data.certs) {
       const certId2 = crypto.randomUUID();
@@ -51,7 +51,7 @@ function WorkerOnboarding() {
     phone: "",
     role_type: "both",
     years_experience: 2,
-    service_style: "casual",
+    service_styles: [] as string[],
     travel_radius: 10,
     city: "Denver",
     certs: [] as string[],
@@ -104,6 +104,13 @@ function WorkerOnboarding() {
     }));
   };
 
+  const toggleServiceStyle = (id: string) => {
+    setForm(f => ({
+      ...f,
+      service_styles: f.service_styles.includes(id) ? f.service_styles.filter(s => s !== id) : [...f.service_styles, id]
+    }));
+  };
+
   const handleSubmit = async () => {
     setSaving(true);
     try {
@@ -153,23 +160,23 @@ function WorkerOnboarding() {
                 <div>
                   <label className="block text-sm font-medium text-[#0F172A] mb-1">First Name *</label>
                   <input type="text" value={form.first_name} onChange={e => update("first_name", e.target.value)}
-                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8633B]" placeholder="Jane" />
+                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8633B] text-[#0F172A]" placeholder="Jane" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[#0F172A] mb-1">Last Name *</label>
                   <input type="text" value={form.last_name} onChange={e => update("last_name", e.target.value)}
-                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8633B]" placeholder="Doe" />
+                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8633B] text-[#0F172A]" placeholder="Doe" />
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-[#0F172A] mb-1">Phone</label>
                 <input type="tel" value={form.phone} onChange={e => update("phone", e.target.value)}
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8633B]" placeholder="(303) 555-0123" />
+                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8633B] text-[#0F172A]" placeholder="(303) 555-0123" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-[#0F172A] mb-1">City</label>
                 <input type="text" value={form.city} onChange={e => update("city", e.target.value)}
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8633B]" />
+                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8633B] text-[#0F172A]" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-[#0F172A] mb-1">What do you do? *</label>
@@ -190,24 +197,30 @@ function WorkerOnboarding() {
               <div>
                 <label className="block text-sm font-medium text-[#0F172A] mb-1">Years of experience</label>
                 <select value={form.years_experience} onChange={e => update("years_experience", parseInt(e.target.value))}
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8633B]">
+                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8633B] text-[#0F172A]">
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20].map(y => (
                     <option key={y} value={y}>{y}+ years</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#0F172A] mb-1">Style of service</label>
-                <select value={form.service_style} onChange={e => update("service_style", e.target.value)}
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8633B]">
-                  <option value="casual">Casual / Neighborhood</option>
-                  <option value="fine_dining">Fine Dining</option>
-                  <option value="craft_cocktail">Craft Cocktail</option>
-                  <option value="high_volume">High Volume</option>
-                  <option value="wine_focused">Wine-Focused</option>
-                  <option value="craft_beer">Craft Beer</option>
-                  <option value="banquet">Banquets / Events</option>
-                </select>
+                <label className="block text-sm font-medium text-[#0F172A] mb-1">Style of service (select all that apply)</label>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { id: "casual", label: "Casual / Neighborhood" },
+                    { id: "fine_dining", label: "Fine Dining" },
+                    { id: "craft_cocktail", label: "Craft Cocktail" },
+                    { id: "high_volume", label: "High Volume" },
+                    { id: "wine_focused", label: "Wine-Focused" },
+                    { id: "craft_beer", label: "Craft Beer" },
+                    { id: "banquet", label: "Banquets / Events" },
+                  ].map(s => (
+                    <div key={s.id} onClick={() => toggleServiceStyle(s.id)}
+                      className={`border-2 rounded-lg p-3 text-center cursor-pointer transition text-sm font-medium ${
+                        form.service_styles.includes(s.id) ? "border-[#E8633B] bg-[#E8633B]/5" : "border-slate-200 hover:border-slate-300"
+                      }`}>{s.label}</div>
+                  ))}
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-[#0F172A] mb-1">Travel radius</label>

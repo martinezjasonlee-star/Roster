@@ -9,7 +9,7 @@ import type { ReactNode } from "react";
 
 import appCss from "~/styles/app.css?url";
 
-const CLERK_PUBLISHABLE_KEY = "pk_live_Y2xlcmsucm9zdGVyLXdvcmsuY29tJA";
+const CLERK_PUBLISHABLE_KEY = "pk_test_ZmFzdC1mbGVhLTI3LmNsZXJrLmFjY291bnRzLmRldiQ";
 
 export const Route = createRootRoute({
   head: () => ({

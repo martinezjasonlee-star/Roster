@@ -122,7 +122,7 @@ function Messaging() {
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === "Enter" && handleSend()}
             placeholder="Type a message..."
-            className="flex-1 px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8633B]"
+            className="flex-1 px-4 py-3 border border-slate-300 rounded-lg text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#E8633B]"
           />
           <button onClick={handleSend} disabled={sending || !input.trim()}
             className="bg-[#E8633B] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#d4552e] transition disabled:opacity-50">

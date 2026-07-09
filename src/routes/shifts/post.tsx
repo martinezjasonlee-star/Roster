@@ -106,46 +106,46 @@ function PostShift() {
             <div>
               <label className="block text-sm font-medium text-[#0F172A] mb-1">Role Type *</label>
               <select value={form.role_type} onChange={e => update("role_type", e.target.value)}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#E8633B] focus:border-transparent">
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-[#0F172A] focus:ring-2 focus:ring-[#E8633B] focus:border-transparent">
                 {ROLE_TYPES.map(r => <option key={r} value={r}>{r.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-[#0F172A] mb-1">Shift Type</label>
               <select value={form.shift_type} onChange={e => update("shift_type", e.target.value)}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#E8633B]">
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-[#0F172A] focus:ring-2 focus:ring-[#E8633B]">
                 {SHIFT_TYPES.map(s => <option key={s} value={s}>{s.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-[#0F172A] mb-1">Date *</label>
               <input type="date" value={form.date} onChange={e => update("date", e.target.value)}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#E8633B]" />
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-[#0F172A] focus:ring-2 focus:ring-[#E8633B]" />
             </div>
             <div>
               <label className="block text-sm font-medium text-[#0F172A] mb-1">Workers Needed</label>
               <input type="number" min={1} max={20} value={form.workers_needed} onChange={e => update("workers_needed", parseInt(e.target.value))}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#E8633B]" />
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-[#0F172A] focus:ring-2 focus:ring-[#E8633B]" />
             </div>
             <div>
               <label className="block text-sm font-medium text-[#0F172A] mb-1">Start Time</label>
               <input type="time" value={form.start_time} onChange={e => update("start_time", e.target.value)}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#E8633B]" />
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-[#0F172A] focus:ring-2 focus:ring-[#E8633B]" />
             </div>
             <div>
               <label className="block text-sm font-medium text-[#0F172A] mb-1">End Time</label>
               <input type="time" value={form.end_time} onChange={e => update("end_time", e.target.value)}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#E8633B]" />
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-[#0F172A] focus:ring-2 focus:ring-[#E8633B]" />
             </div>
             <div>
               <label className="block text-sm font-medium text-[#0F172A] mb-1">Hourly Rate ($/hr + tips)</label>
               <input type="number" min={10} max={100} step={5} value={form.hourly_rate} onChange={e => update("hourly_rate", parseInt(e.target.value))}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#E8633B]" />
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-[#0F172A] focus:ring-2 focus:ring-[#E8633B]" />
             </div>
             <div>
               <label className="block text-sm font-medium text-[#0F172A] mb-1">Dress Code</label>
               <select value={form.dress_code} onChange={e => update("dress_code", e.target.value)}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#E8633B]">
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-[#0F172A] focus:ring-2 focus:ring-[#E8633B]">
                 {DRESS_CODES.map(d => <option key={d} value={d}>{d.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}</option>)}
               </select>
             </div>
@@ -155,7 +155,7 @@ function PostShift() {
             <div>
               <label className="block text-sm font-medium text-[#0F172A] mb-1">Location Name</label>
               <input type="text" value={form.location_name} onChange={e => update("location_name", e.target.value)}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#E8633B]" placeholder="e.g. The Corner Bar" />
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-[#0F172A] focus:ring-2 focus:ring-[#E8633B]" placeholder="e.g. The Corner Bar" />
             </div>
             <div>
               <label className="block text-sm font-medium text-[#0F172A] mb-1">Required Certifications (optional)</label>
@@ -176,7 +176,7 @@ function PostShift() {
             <div>
               <label className="block text-sm font-medium text-[#0F172A] mb-1">Notes for Workers</label>
               <textarea value={form.notes} onChange={e => update("notes", e.target.value)} rows={3}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#E8633B]"
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-[#0F172A] focus:ring-2 focus:ring-[#E8633B]"
                 placeholder="Parking info, door code, menu details, anything they should know..." />
             </div>
           </div>

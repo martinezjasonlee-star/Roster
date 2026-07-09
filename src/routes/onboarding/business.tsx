@@ -123,13 +123,13 @@ function BusinessOnboarding() {
               <div>
                 <label className="block text-sm font-medium text-[#0F172A] mb-1">Venue Name *</label>
                 <input type="text" value={form.name} onChange={e => update("name", e.target.value)} 
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8633B] focus:border-transparent" 
+                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#E8633B] focus:border-transparent" 
                   placeholder="e.g. The Corner Bar" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-[#0F172A] mb-1">Venue Type *</label>
                 <select value={form.venue_type} onChange={e => update("venue_type", e.target.value)}
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8633B] focus:border-transparent">
+                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#E8633B] focus:border-transparent">
                   <option value="restaurant">Restaurant</option>
                   <option value="bar">Bar / Pub</option>
                   <option value="country_club">Country Club</option>
@@ -142,25 +142,25 @@ function BusinessOnboarding() {
               <div>
                 <label className="block text-sm font-medium text-[#0F172A] mb-1">Description</label>
                 <textarea value={form.description} onChange={e => update("description", e.target.value)} rows={3}
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8633B] focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#E8633B] focus:border-transparent"
                   placeholder="Tell workers about your venue — vibe, size, what makes it special..." />
               </div>
               <div>
                 <label className="block text-sm font-medium text-[#0F172A] mb-1">Address *</label>
                 <input type="text" value={form.address} onChange={e => update("address", e.target.value)}
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8633B] focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#E8633B] focus:border-transparent"
                   placeholder="Street address" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-[#0F172A] mb-1">City</label>
                   <input type="text" value={form.city} onChange={e => update("city", e.target.value)}
-                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8633B] focus:border-transparent" />
+                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#E8633B] focus:border-transparent" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[#0F172A] mb-1">Phone</label>
                   <input type="tel" value={form.phone} onChange={e => update("phone", e.target.value)}
-                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8633B] focus:border-transparent"
+                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#E8633B] focus:border-transparent"
                     placeholder="(303) 555-0123" />
                 </div>
               </div>

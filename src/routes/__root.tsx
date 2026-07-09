@@ -21,7 +21,7 @@ export const Route = createRootRoute({
       { property: "og:title", content: "Roster — Staff on Demand. No Markups. No Contracts." },
       { property: "og:description", content: "The membership-based staffing network for bartenders, servers, and hospitality venues. Denver-Boulder." },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://d1359b97b85bb1aaccddfea0390a4eee.ctonew.app" },
+      { property: "og:url", content: "https://roster-work.com" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth, useUser } from "@clerk/clerk-react";
 import { useState, useEffect } from "react";
 
 const saveWorker = createServerFn({ method: "POST" })
@@ -56,6 +56,7 @@ function WorkerOnboarding() {
     city: "Denver",
     certs: [] as string[],
     availability: [] as { day: number; start: string; end: string }[],
+    email: "", // will be set from Clerk user email
   });
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
@@ -63,6 +64,14 @@ function WorkerOnboarding() {
   useEffect(() => {
     if (isLoaded && !isSignedIn) window.location.href = "/auth/sign-up";
   }, [isLoaded, isSignedIn]);
+
+  // Get the actual email from Clerk
+  const { user } = useUser();
+  useEffect(() => {
+    if (user?.emailAddresses?.[0]?.emailAddress) {
+      setForm(f => ({ ...f, email: user.emailAddresses[0].emailAddress }));
+    }
+  }, [user]);
 
   if (!isLoaded) return <div className="min-h-screen bg-[#F8F6F3] flex items-center justify-center"><p className="text-[#0F172A]">Loading...</p></div>;
   if (!isSignedIn) return null;
@@ -114,7 +123,7 @@ function WorkerOnboarding() {
   const handleSubmit = async () => {
     setSaving(true);
     try {
-      await saveWorker({ data: { ...form, email: userId || "" } });
+      await saveWorker({ data: { ...form } });
       setDone(true);
     } catch (e) {
       console.error("Worker save failed:", e);

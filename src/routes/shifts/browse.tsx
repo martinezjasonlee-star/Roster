@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 
 const getShifts = createServerFn({ method: "GET" }).handler(async () => {
   const { execSync } = await import("node:child_process");
-  const result = execSync(`sqlite3 /home/team/.data/agent-team-cc229006.db "SELECT id, role_type, shift_type, date, start_time, end_time, hourly_rate, dress_code, notes, location_name, workers_needed, created_at FROM shifts WHERE status='open' ORDER BY date ASC LIMIT 50"`);
+  const result = execSync(`sqlite3 -json /home/team/.data/agent-team-cc229006.db "SELECT id, role_type, shift_type, date, start_time, end_time, hourly_rate, dress_code, notes, location_name, workers_needed, created_at FROM shifts WHERE status='open' ORDER BY date ASC LIMIT 50"`);
   return JSON.parse(result.toString());
 });
 

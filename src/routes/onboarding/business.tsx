@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth, useUser } from "@clerk/clerk-react";
 import { useState, useEffect } from "react";
 
 const saveBusiness = createServerFn({ method: "POST" })
@@ -29,6 +29,7 @@ export const Route = createFileRoute("/onboarding/business")({
 
 function BusinessOnboarding() {
   const { userId, isLoaded, isSignedIn } = useAuth();
+  const { user } = useUser();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
     name: "",
@@ -38,9 +39,16 @@ function BusinessOnboarding() {
     city: "Denver",
     phone: "",
     plan: "starter",
+    email: "",
   });
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    if (user?.emailAddresses?.[0]?.emailAddress) {
+      setForm(f => ({ ...f, email: user.emailAddresses[0].emailAddress }));
+    }
+  }, [user]);
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -68,7 +76,7 @@ function BusinessOnboarding() {
   const handleSubmit = async () => {
     setSaving(true);
     try {
-      await saveBusiness({ data: { ...form, email: userId || "" } });
+      await saveBusiness({ data: { ...form, email: form.email } });
       // Redirect to Stripe checkout for the selected plan
       const stripeLinks: Record<string, string> = {
         starter: "https://buy.stripe.com/fZudR9aKrb4W4EacGTbZe00",

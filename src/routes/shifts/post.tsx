@@ -4,21 +4,22 @@ import { useAuth, useUser } from "@clerk/clerk-react";
 import { useState, useEffect } from "react";
 
 const saveShift = createServerFn({ method: "POST" })
-  .validator((data: any) => data)
+  .validator((data: { form: any; email: string }) => data)
   .handler(async ({ data }) => {
     const { execSync } = await import("node:child_process");
     const id = crypto.randomUUID();
-    execSync(`/home/agent-lead/.local/bin/team-db "INSERT INTO shifts (id, business_id, role_type, status, shift_type, date, start_time, end_time, workers_needed, hourly_rate, tips_included, pay_type, dress_code, certifications_required, notes, location_name) VALUES ('${id}', '${data.business_id}', '${data.role_type}', 'open', '${data.shift_type}', '${data.date}', '${data.start_time}', '${data.end_time}', ${data.workers_needed}, ${data.hourly_rate}, 1, 'hourly_plus_tips', '${data.dress_code}', '${data.certs_required}', '${data.notes.replace(/'/g, "''")}', '${data.location_name.replace(/'/g, "''")}')"`);
-    return { success: true, shiftId: id };
-  });
 
-const getBusinessId = createServerFn({ method: "GET" })
-  .validator((data: { email: string }) => data)
-  .handler(async ({ data }) => {
-    const { execSync } = await import("node:child_process");
-    const result = execSync(`/home/agent-lead/.local/bin/team-db "SELECT id FROM businesses WHERE email='${data.email.replace(/'/g, "''")}'"`);
-    const rows = JSON.parse(result.toString());
-    return rows[0]?.id || null;
+    // Look up the business ID by email
+    let bizId = data.email ? (() => {
+      const result = execSync(`/home/agent-lead/.local/bin/team-db "SELECT id FROM businesses WHERE email='${data.email.replace(/'/g, "''")}'"`);
+      const rows = JSON.parse(result.toString());
+      return rows[0]?.id || null;
+    })() : null;
+
+    if (!bizId) bizId = data.form.business_id || "demo-business";
+
+    execSync(`/home/agent-lead/.local/bin/team-db "INSERT INTO shifts (id, business_id, role_type, status, shift_type, date, start_time, end_time, workers_needed, hourly_rate, tips_included, pay_type, dress_code, certifications_required, notes, location_name) VALUES ('${id}', '${bizId}', '${data.form.role_type}', 'open', '${data.form.shift_type}', '${data.form.date}', '${data.form.start_time}', '${data.form.end_time}', ${data.form.workers_needed}, ${data.form.hourly_rate}, 1, 'hourly_plus_tips', '${data.form.dress_code}', '${data.form.certs_required}', '${data.form.notes.replace(/'/g, "''")}', '${data.form.location_name.replace(/'/g, "''")}')"`);
+    return { success: true, shiftId: id };
   });
 
 export const Route = createFileRoute("/shifts/post")({
@@ -62,13 +63,8 @@ function PostShift() {
   const handleSubmit = async () => {
     setSaving(true);
     try {
-      const email = user?.primaryEmailAddress?.emailAddress;
-      let bizId = "";
-      if (email) {
-        bizId = await getBusinessId({ data: { email } });
-      }
-      if (!bizId) bizId = userId || "demo-business";
-      const result = await saveShift({ data: { ...form, business_id: bizId } });
+      const email = user?.primaryEmailAddress?.emailAddress || "";
+      const result = await saveShift({ data: { form, email } });
       setShiftId(result.shiftId);
       setDone(true);
     } catch (e) { alert("Failed to post shift. Try again."); }

@@ -21,16 +21,16 @@ const saveWorker = createServerFn({ method: "POST" })
     const { execSync } = await import("node:child_process");
     const workerId = crypto.randomUUID();
 
-    execSync(`/home/agent-lead/.local/bin/team-db "INSERT INTO workers (id, email, first_name, last_name, phone, role_type, years_experience, service_style, travel_radius, city, state, is_verified) VALUES ('${workerId}', '${data.email.replace(/'/g, "''")}', '${data.first_name.replace(/'/g, "''")}', '${data.last_name.replace(/'/g, "''")}', '${data.phone.replace(/'/g, "''")}', '${data.role_type}', ${data.years_experience}, '${data.service_styles.join(",")}', ${data.travel_radius}, '${data.city.replace(/'/g, "''")}', 'CO', 0)"`);
+    execSync(`sqlite3 /home/team/.data/agent-team-cc229006.db "INSERT INTO workers (id, email, first_name, last_name, phone, role_type, years_experience, service_style, travel_radius, city, state, is_verified) VALUES ('${workerId}', '${data.email.replace(/'/g, "''")}', '${data.first_name.replace(/'/g, "''")}', '${data.last_name.replace(/'/g, "''")}', '${data.phone.replace(/'/g, "''")}', '${data.role_type}', ${data.years_experience}, '${data.service_styles.join(",")}', ${data.travel_radius}, '${data.city.replace(/'/g, "''")}', 'CO', 0)"`);
 
     for (const certId of data.certs) {
       const certId2 = crypto.randomUUID();
-      execSync(`/home/agent-lead/.local/bin/team-db "INSERT INTO worker_certifications (id, worker_id, certification_id, is_verified) VALUES ('${certId2}', '${workerId}', '${certId}', 0)"`);
+      execSync(`sqlite3 /home/team/.data/agent-team-cc229006.db "INSERT INTO worker_certifications (id, worker_id, certification_id, is_verified) VALUES ('${certId2}', '${workerId}', '${certId}', 0)"`);
     }
 
     for (const slot of data.availability) {
       const slotId = crypto.randomUUID();
-      execSync(`/home/agent-lead/.local/bin/team-db "INSERT INTO worker_availability (id, worker_id, day_of_week, start_time, end_time, is_available) VALUES ('${slotId}', '${workerId}', ${slot.day}, '${slot.start}', '${slot.end}', 1)"`);
+      execSync(`sqlite3 /home/team/.data/agent-team-cc229006.db "INSERT INTO worker_availability (id, worker_id, day_of_week, start_time, end_time, is_available) VALUES ('${slotId}', '${workerId}', ${slot.day}, '${slot.start}', '${slot.end}', 1)"`);
     }
 
     return { success: true, workerId };

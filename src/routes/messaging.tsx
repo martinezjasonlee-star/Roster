@@ -7,7 +7,7 @@ const getMessages = createServerFn({ method: "GET" })
   .validator((data: { userId: string }) => data)
   .handler(async ({ data }) => {
     const { execSync } = await import("node:child_process");
-    const result = execSync(`/home/agent-lead/.local/bin/team-db "SELECT m.id, m.sender_type, m.sender_id, m.content, m.is_read, m.created_at FROM messages m WHERE m.sender_id='${data.userId}' OR m.sender_id IN (SELECT id FROM workers WHERE id='${data.userId}') ORDER BY m.created_at DESC LIMIT 50"`);
+    const result = execSync(`sqlite3 /home/team/.data/agent-team-cc229006.db "SELECT m.id, m.sender_type, m.sender_id, m.content, m.is_read, m.created_at FROM messages m WHERE m.sender_id='${data.userId}' OR m.sender_id IN (SELECT id FROM workers WHERE id='${data.userId}') ORDER BY m.created_at DESC LIMIT 50"`);
     return JSON.parse(result.toString());
   });
 
@@ -16,7 +16,7 @@ const sendMessage = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { execSync } = await import("node:child_process");
     const id = crypto.randomUUID();
-    execSync(`/home/agent-lead/.local/bin/team-db "INSERT INTO messages (id, sender_type, sender_id, booking_id, content) VALUES ('${id}', '${data.sender_type}', '${data.sender_id}', '${data.booking_id}', '${data.content.replace(/'/g, "''")}')"`);
+    execSync(`sqlite3 /home/team/.data/agent-team-cc229006.db "INSERT INTO messages (id, sender_type, sender_id, booking_id, content) VALUES ('${id}', '${data.sender_type}', '${data.sender_id}', '${data.booking_id}', '${data.content.replace(/'/g, "''")}')"`);
     return { success: true, messageId: id };
   });
 

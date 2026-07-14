@@ -8,7 +8,7 @@ const submitRating = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { execSync } = await import("node:child_process");
     const id = crypto.randomUUID();
-    execSync(`/home/agent-lead/.local/bin/team-db "INSERT INTO ratings (id, booking_id, rater_type, rater_id, subject_type, subject_id, score, review) VALUES ('${id}', '${data.booking_id}', '${data.rater_type}', '${data.rater_id}', '${data.subject_type}', '${data.subject_id}', ${data.score}, '${data.review.replace(/'/g, "''")}')"`);
+    execSync(`sqlite3 /home/team/.data/agent-team-cc229006.db "INSERT INTO ratings (id, booking_id, rater_type, rater_id, subject_type, subject_id, score, review) VALUES ('${id}', '${data.booking_id}', '${data.rater_type}', '${data.rater_id}', '${data.subject_type}', '${data.subject_id}', ${data.score}, '${data.review.replace(/'/g, "''")}')"`);
     return { success: true };
   });
 

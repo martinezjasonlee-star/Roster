@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 
 const getShifts = createServerFn({ method: "GET" }).handler(async () => {
   const { execSync } = await import("node:child_process");
-  const result = execSync(`/home/agent-lead/.local/bin/team-db "SELECT id, role_type, shift_type, date, start_time, end_time, hourly_rate, dress_code, notes, location_name, workers_needed, created_at FROM shifts WHERE status='open' ORDER BY date ASC LIMIT 50"`);
+  const result = execSync(`sqlite3 /home/team/.data/agent-team-cc229006.db "SELECT id, role_type, shift_type, date, start_time, end_time, hourly_rate, dress_code, notes, location_name, workers_needed, created_at FROM shifts WHERE status='open' ORDER BY date ASC LIMIT 50"`);
   return JSON.parse(result.toString());
 });
 
@@ -14,7 +14,7 @@ const applyToShift = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { execSync } = await import("node:child_process");
     const id = crypto.randomUUID();
-    execSync(`/home/agent-lead/.local/bin/team-db "INSERT INTO bookings (id, shift_id, worker_id, business_id, status) VALUES ('${id}', '${data.shiftId}', '${data.workerId}', '${data.businessId || "pending"}', 'pending')"`);
+    execSync(`sqlite3 /home/team/.data/agent-team-cc229006.db "INSERT INTO bookings (id, shift_id, worker_id, business_id, status) VALUES ('${id}', '${data.shiftId}', '${data.workerId}', '${data.businessId || "pending"}', 'pending')"`);
     return { success: true, bookingId: id };
   });
 

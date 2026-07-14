@@ -8,17 +8,17 @@ const saveShift = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { execSync } = await import("node:child_process");
     const id = crypto.randomUUID();
+    const dbPath = "/home/team/.data/agent-team-cc229006.db";
 
     // Look up the business ID by email
     let bizId = data.email ? (() => {
-      const result = execSync(`/home/agent-lead/.local/bin/team-db "SELECT id FROM businesses WHERE email='${data.email.replace(/'/g, "''")}'"`);
-      const rows = JSON.parse(result.toString());
-      return rows[0]?.id || null;
+      const result = execSync(`sqlite3 "${dbPath}" "SELECT id FROM businesses WHERE email='${data.email.replace(/'/g, "''")}'"`);
+      return result.toString().trim() || null;
     })() : null;
 
     if (!bizId) bizId = data.form.business_id || "demo-business";
 
-    execSync(`/home/agent-lead/.local/bin/team-db "INSERT INTO shifts (id, business_id, role_type, status, shift_type, date, start_time, end_time, workers_needed, hourly_rate, tips_included, pay_type, dress_code, certifications_required, notes, location_name) VALUES ('${id}', '${bizId}', '${data.form.role_type}', 'open', '${data.form.shift_type}', '${data.form.date}', '${data.form.start_time}', '${data.form.end_time}', ${data.form.workers_needed}, ${data.form.hourly_rate}, 1, 'hourly_plus_tips', '${data.form.dress_code}', '${data.form.certs_required}', '${data.form.notes.replace(/'/g, "''")}', '${data.form.location_name.replace(/'/g, "''")}')"`);
+    execSync(`sqlite3 "${dbPath}" "INSERT INTO shifts (id, business_id, role_type, status, shift_type, date, start_time, end_time, workers_needed, hourly_rate, tips_included, pay_type, dress_code, certifications_required, notes, location_name) VALUES ('${id}', '${bizId}', '${data.form.role_type}', 'open', '${data.form.shift_type}', '${data.form.date}', '${data.form.start_time}', '${data.form.end_time}', ${data.form.workers_needed}, ${data.form.hourly_rate}, 1, 'hourly_plus_tips', '${data.form.dress_code}', '${data.form.certs_required}', '${data.form.notes.replace(/'/g, "''")}', '${data.form.location_name.replace(/'/g, "''")}')"`);
     return { success: true, shiftId: id };
   });
 

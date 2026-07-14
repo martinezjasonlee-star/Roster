@@ -18,8 +18,8 @@ const saveBusiness = createServerFn({ method: "POST" })
     const { execSync } = await import("node:child_process");
     const id = crypto.randomUUID();
     const result = execSync(
-      `team-db "INSERT INTO businesses (id, name, email, phone, venue_type, description, address, city, state, membership_tier, membership_status) VALUES ('${id}', '${data.name.replace(/'/g, "''")}', '${data.email.replace(/'/g, "''")}', '${data.phone.replace(/'/g, "''")}', '${data.venue_type}', '${data.description.replace(/'/g, "''")}', '${data.address.replace(/'/g, "''")}', '${data.city}', 'CO', '${data.plan}', 'trial')"`
-    ).toString();
+              `sqlite3 /home/team/.data/agent-team-cc229006.db "INSERT INTO businesses (id, name, email, phone, venue_type, description, address, city, state, membership_tier, membership_status) VALUES ('${id}', '${data.name.replace(/'/g, "''")}', '${data.email.replace(/'/g, "''")}', '${data.phone.replace(/'/g, "''")}', '${data.venue_type}', '${data.description.replace(/'/g, "''")}', '${data.address.replace(/'/g, "''")}', '${data.city}', 'CO', '${data.plan}', 'trial')"`
+            ).toString();
     return { success: true, businessId: id };
   });
 

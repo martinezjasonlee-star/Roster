@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth, useClerk } from "@clerk/clerk-react";
 import { useEffect } from "react";
 
 export const Route = createFileRoute("/dashboard")({
@@ -8,10 +8,16 @@ export const Route = createFileRoute("/dashboard")({
 
 function Dashboard() {
   const { isLoaded, isSignedIn } = useAuth();
+  const { signOut } = useClerk();
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) window.location.href = "/auth/sign-in";
   }, [isLoaded, isSignedIn]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    window.location.href = "/";
+  };
 
   if (!isLoaded) return <div className="min-h-screen bg-[#F8F6F3] flex items-center justify-center"><p className="text-[#0F172A]">Loading...</p></div>;
   if (!isSignedIn) return null;
@@ -29,7 +35,10 @@ function Dashboard() {
             </svg>
             <span className="font-bold text-lg tracking-tight">Roster</span>
           </div>
-          <a href="/" className="text-sm text-[#0F172A] hover:text-[#0F172A] transition">← Back to site</a>
+          <div className="flex items-center gap-3">
+            <a href="/" className="text-sm text-[#0F172A] hover:text-[#0F172A] transition">← Back to site</a>
+            <button onClick={handleSignOut} className="text-sm text-[#0F172A] hover:text-[#E8633B] transition">Sign Out</button>
+          </div>
         </div>
       </nav>
 

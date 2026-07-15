@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth, useUser } from "@clerk/clerk-react";
 import { useState, useEffect } from "react";
 
 const getShifts = createServerFn({ method: "GET" }).handler(async () => {
@@ -10,11 +10,16 @@ const getShifts = createServerFn({ method: "GET" }).handler(async () => {
 });
 
 const applyToShift = createServerFn({ method: "POST" })
-  .validator((data: { shiftId: string; workerId: string; businessId?: string }) => data)
+  .validator((data: { shiftId: string; email: string; businessId?: string }) => data)
   .handler(async ({ data }) => {
     const { execSync } = await import("node:child_process");
     const id = crypto.randomUUID();
-    execSync(`sqlite3 /home/team/.data/agent-team-cc229006.db "INSERT INTO bookings (id, shift_id, worker_id, business_id, status) VALUES ('${id}', '${data.shiftId}', '${data.workerId}', '${data.businessId || "pending"}', 'pending')"`);
+    const db = "/home/team/.data/agent-team-cc229006.db";
+    // Look up the worker's actual DB ID by email
+    const workerResult = execSync(`sqlite3 -json ${db} "SELECT id FROM workers WHERE email='${data.email.replace(/'/g, "''")}' LIMIT 1"`);
+    const workers = JSON.parse(workerResult.toString().trim());
+    const workerId = workers[0]?.id || "unknown-worker";
+    execSync(`sqlite3 ${db} "INSERT INTO bookings (id, shift_id, worker_id, business_id, status) VALUES ('${id}', '${data.shiftId}', '${workerId}', '${data.businessId || "pending"}', 'pending')"`);
     return { success: true, bookingId: id };
   });
 
@@ -24,7 +29,8 @@ export const Route = createFileRoute("/shifts/browse")({
 });
 
 function BrowseShifts() {
-  const { isLoaded, isSignedIn, userId } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
+  const { user } = useUser();
   const shifts = Route.useLoaderData() as any[];
   const [applying, setApplying] = useState<string | null>(null);
   const [applied, setApplied] = useState<string[]>([]);
@@ -41,8 +47,10 @@ function BrowseShifts() {
 
   const handleApply = async (shift: any) => {
     setApplying(shift.id);
+    const email = user?.emailAddresses?.[0]?.emailAddress;
+    if (!email) { alert("Please sign in first."); setApplying(null); return; }
     try {
-      await applyToShift({ data: { shiftId: shift.id, workerId: userId || "demo-worker", businessId: shift.business_id || "demo-business" } });
+      await applyToShift({ data: { shiftId: shift.id, email, businessId: shift.business_id || "demo-business" } });
       setApplied([...applied, shift.id]);
     } catch (e) { alert("Failed to apply."); }
     setApplying(null);

@@ -16,12 +16,13 @@ const saveWorker = createServerFn({ method: "POST" })
     city: string;
     certs: string[];
     availability: { day: number; start: string; end: string }[];
+    photo_url: string;
   }) => data)
   .handler(async ({ data }) => {
     const { execSync } = await import("node:child_process");
     const workerId = crypto.randomUUID();
 
-    execSync(`sqlite3 /home/team/.data/agent-team-cc229006.db "INSERT INTO workers (id, email, first_name, last_name, phone, role_type, years_experience, service_style, travel_radius, city, state, is_verified) VALUES ('${workerId}', '${data.email.replace(/'/g, "''")}', '${data.first_name.replace(/'/g, "''")}', '${data.last_name.replace(/'/g, "''")}', '${data.phone.replace(/'/g, "''")}', '${data.role_type}', ${data.years_experience}, '${data.service_styles.join(",")}', ${data.travel_radius}, '${data.city.replace(/'/g, "''")}', 'CO', 0)"`);
+    execSync(`sqlite3 /home/team/.data/agent-team-cc229006.db "INSERT INTO workers (id, email, first_name, last_name, phone, role_type, years_experience, service_style, travel_radius, city, state, is_verified, photo_url) VALUES ('${workerId}', '${data.email.replace(/'/g, "''")}', '${data.first_name.replace(/'/g, "''")}', '${data.last_name.replace(/'/g, "''")}', '${data.phone.replace(/'/g, "''")}', '${data.role_type}', ${data.years_experience}, '${data.service_styles.join(",")}', ${data.travel_radius}, '${data.city.replace(/'/g, "''")}', 'CO', 0, '${data.photo_url}')"`);
 
     for (const certId of data.certs) {
       const certId2 = crypto.randomUUID();
@@ -57,6 +58,7 @@ function WorkerOnboarding() {
     certs: [] as string[],
     availability: [] as { day: number; start: string; end: string }[],
     email: "", // will be set from Clerk user email
+    photo_url: "",
   });
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
@@ -72,6 +74,21 @@ function WorkerOnboarding() {
       setForm(f => ({ ...f, email: user.emailAddresses[0].emailAddress }));
     }
   }, [user]);
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        alert("Photo must be smaller than 2MB.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        update("photo_url", reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   if (!isLoaded) return <div className="min-h-screen bg-[#F8F6F3] flex items-center justify-center"><p className="text-[#0F172A]">Loading...</p></div>;
   if (!isSignedIn) return null;
@@ -164,8 +181,30 @@ function WorkerOnboarding() {
         {step === 1 && (
           <div className="bg-white rounded-xl p-8 shadow-sm">
             <h1 className="text-2xl font-bold text-[#0F172A] mb-1">Tell us about yourself</h1>
-            <p className="text-[#0F172A] mb-6">Bartenders and servers in Denver-Boulder trust Roster to find great shifts.</p>
+            <p className="text-[#0F172A] mb-6 font-medium">Bartenders and servers in Denver-Boulder trust Roster to find great shifts.</p>
+            
             <div className="space-y-4">
+              {/* Mandatory Photo Upload */}
+              <div className="border border-slate-100 rounded-xl p-4 bg-slate-50/50 mb-6">
+                <label className="block text-sm font-bold text-[#0F172A] mb-2">Your Face Photo *</label>
+                <div className="flex items-center gap-4">
+                  <div className="w-20 h-20 rounded-xl bg-white border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden flex-shrink-0 relative shadow-inner">
+                    {form.photo_url ? (
+                      <img src={form.photo_url} alt="Profile Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-3xl text-slate-300">👤</span>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <input type="file" accept="image/*" onChange={handlePhotoChange} id="worker-photo-input" className="hidden" />
+                    <label htmlFor="worker-photo-input" className="cursor-pointer inline-block bg-[#0F172A] text-white px-4 py-2 rounded-lg font-semibold text-xs hover:bg-slate-800 transition">
+                      {form.photo_url ? "Change Photo" : "Upload Face Photo"}
+                    </label>
+                    <p className="text-[11px] text-slate-500 mt-1">Required to proceed. JPG, PNG, or WebP. Max 2MB.</p>
+                  </div>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-[#0F172A] mb-1">First Name *</label>
@@ -242,7 +281,7 @@ function WorkerOnboarding() {
                 </div>
               </div>
             </div>
-            <button onClick={() => setStep(2)} disabled={!form.first_name || !form.last_name}
+            <button onClick={() => setStep(2)} disabled={!form.first_name || !form.last_name || !form.photo_url}
               className="mt-6 w-full bg-[#E8633B] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#d4552e] transition disabled:opacity-50">
               Continue → Certifications
             </button>

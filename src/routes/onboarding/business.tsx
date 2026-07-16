@@ -13,12 +13,13 @@ const saveBusiness = createServerFn({ method: "POST" })
     phone: string;
     plan: string;
     email: string;
+    photo_url: string;
   }) => data)
   .handler(async ({ data }) => {
     const { execSync } = await import("node:child_process");
     const id = crypto.randomUUID();
     const result = execSync(
-              `sqlite3 /home/team/.data/agent-team-cc229006.db "INSERT INTO businesses (id, name, email, phone, venue_type, description, address, city, state, membership_tier, membership_status) VALUES ('${id}', '${data.name.replace(/'/g, "''")}', '${data.email.replace(/'/g, "''")}', '${data.phone.replace(/'/g, "''")}', '${data.venue_type}', '${data.description.replace(/'/g, "''")}', '${data.address.replace(/'/g, "''")}', '${data.city}', 'CO', '${data.plan}', 'trial')"`
+              `sqlite3 /home/team/.data/agent-team-cc229006.db "INSERT INTO businesses (id, name, email, phone, venue_type, description, address, city, state, membership_tier, membership_status, photo_url) VALUES ('${id}', '${data.name.replace(/'/g, "''")}', '${data.email.replace(/'/g, "''")}', '${data.phone.replace(/'/g, "''")}', '${data.venue_type}', '${data.description.replace(/'/g, "''")}', '${data.address.replace(/'/g, "''")}', '${data.city}', 'CO', '${data.plan}', 'trial', '${data.photo_url}')"`
             ).toString();
     return { success: true, businessId: id };
   });
@@ -40,6 +41,7 @@ function BusinessOnboarding() {
     phone: "",
     plan: "starter",
     email: "",
+    photo_url: "",
   });
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
@@ -55,6 +57,21 @@ function BusinessOnboarding() {
       window.location.href = "/auth/sign-up";
     }
   }, [isLoaded, isSignedIn]);
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        alert("Photo must be smaller than 2MB.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        update("photo_url", reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   if (!isLoaded) return <div className="min-h-screen bg-[#F8F6F3] flex items-center justify-center"><p className="text-[#0F172A]">Loading...</p></div>;
   if (!isSignedIn) return null;
@@ -125,9 +142,30 @@ function BusinessOnboarding() {
         {step === 1 && (
           <div className="bg-white rounded-xl p-8 shadow-sm">
             <h1 className="text-2xl font-bold text-[#0F172A] mb-1">Tell us about your venue</h1>
-            <p className="text-[#0F172A] mb-6">Set up your Roster profile so workers know who they're working with.</p>
+            <p className="text-[#0F172A] mb-6 font-medium">Set up your Roster profile so workers know who they're working with.</p>
             
             <div className="space-y-4">
+              {/* Mandatory Photo Upload */}
+              <div className="border border-slate-100 rounded-xl p-4 bg-slate-50/50 mb-6">
+                <label className="block text-sm font-bold text-[#0F172A] mb-2">Venue Face Photo *</label>
+                <div className="flex items-center gap-4">
+                  <div className="w-20 h-20 rounded-xl bg-white border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden flex-shrink-0 relative shadow-inner">
+                    {form.photo_url ? (
+                      <img src={form.photo_url} alt="Venue Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-3xl text-slate-300">📸</span>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <input type="file" accept="image/*" onChange={handlePhotoChange} id="venue-photo-input" className="hidden" />
+                    <label htmlFor="venue-photo-input" className="cursor-pointer inline-block bg-[#0F172A] text-white px-4 py-2 rounded-lg font-semibold text-xs hover:bg-slate-800 transition">
+                      {form.photo_url ? "Change Photo" : "Upload Face Photo"}
+                    </label>
+                    <p className="text-[11px] text-slate-500 mt-1">Required to proceed. JPG, PNG, or WebP. Max 2MB.</p>
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-[#0F172A] mb-1">Venue Name *</label>
                 <input type="text" value={form.name} onChange={e => update("name", e.target.value)} 
@@ -174,7 +212,7 @@ function BusinessOnboarding() {
               </div>
             </div>
 
-            <button onClick={() => setStep(2)} disabled={!form.name || !form.address}
+            <button onClick={() => setStep(2)} disabled={!form.name || !form.address || !form.photo_url}
               className="mt-6 w-full bg-[#E8633B] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#d4552e] transition disabled:opacity-50 disabled:cursor-not-allowed">
               Continue → Choose Your Plan
             </button>

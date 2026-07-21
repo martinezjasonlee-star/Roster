@@ -19,22 +19,58 @@ const saveWorker = createServerFn({ method: "POST" })
     photo_url: string;
   }) => data)
   .handler(async ({ data }) => {
-    const { execSync } = await import("node:child_process");
+    const { Database } = await import("bun:sqlite");
+    const db = new Database("/home/team/.data/agent-team-cc229006.db");
     const workerId = crypto.randomUUID();
 
-    execSync(`sqlite3 /home/team/.data/agent-team-cc229006.db "INSERT INTO workers (id, email, first_name, last_name, phone, role_type, years_experience, service_style, travel_radius, city, state, is_verified, photo_url) VALUES ('${workerId}', '${data.email.replace(/'/g, "''")}', '${data.first_name.replace(/'/g, "''")}', '${data.last_name.replace(/'/g, "''")}', '${data.phone.replace(/'/g, "''")}', '${data.role_type}', ${data.years_experience}, '${data.service_styles.join(",")}', ${data.travel_radius}, '${data.city.replace(/'/g, "''")}', 'CO', 0, '${data.photo_url}')"`);
+    try {
+      db.query(`
+        INSERT INTO workers (id, email, first_name, last_name, phone, role_type, years_experience, service_style, travel_radius, city, state, is_verified, photo_url)
+        VALUES ($id, $email, $first_name, $last_name, $phone, $role_type, $years_experience, $service_style, $travel_radius, $city, 'CO', 0, $photo_url)
+      `).run({
+        $id: workerId,
+        $email: data.email,
+        $first_name: data.first_name,
+        $last_name: data.last_name,
+        $phone: data.phone,
+        $role_type: data.role_type,
+        $years_experience: data.years_experience,
+        $service_style: data.service_styles.join(","),
+        $travel_radius: data.travel_radius,
+        $city: data.city,
+        $photo_url: data.photo_url,
+      });
 
-    for (const certId of data.certs) {
-      const certId2 = crypto.randomUUID();
-      execSync(`sqlite3 /home/team/.data/agent-team-cc229006.db "INSERT INTO worker_certifications (id, worker_id, certification_id, is_verified) VALUES ('${certId2}', '${workerId}', '${certId}', 0)"`);
+      for (const certId of data.certs) {
+        const certId2 = crypto.randomUUID();
+        db.query(`
+          INSERT INTO worker_certifications (id, worker_id, certification_id, is_verified)
+          VALUES ($id, $worker_id, $certification_id, 0)
+        `).run({
+          $id: certId2,
+          $worker_id: workerId,
+          $certification_id: certId,
+        });
+      }
+
+      for (const slot of data.availability) {
+        const slotId = crypto.randomUUID();
+        db.query(`
+          INSERT INTO worker_availability (id, worker_id, day_of_week, start_time, end_time, is_available)
+          VALUES ($id, $worker_id, $day_of_week, $start_time, $end_time, 1)
+        `).run({
+          $id: slotId,
+          $worker_id: workerId,
+          $day_of_week: slot.day,
+          $start_time: slot.start,
+          $end_time: slot.end,
+        });
+      }
+
+      return { success: true, workerId };
+    } finally {
+      db.close();
     }
-
-    for (const slot of data.availability) {
-      const slotId = crypto.randomUUID();
-      execSync(`sqlite3 /home/team/.data/agent-team-cc229006.db "INSERT INTO worker_availability (id, worker_id, day_of_week, start_time, end_time, is_available) VALUES ('${slotId}', '${workerId}', ${slot.day}, '${slot.start}', '${slot.end}', 1)"`);
-    }
-
-    return { success: true, workerId };
   });
 
 export const Route = createFileRoute("/onboarding/worker")({

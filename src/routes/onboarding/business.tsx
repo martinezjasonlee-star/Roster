@@ -16,12 +16,29 @@ const saveBusiness = createServerFn({ method: "POST" })
     photo_url: string;
   }) => data)
   .handler(async ({ data }) => {
-    const { execSync } = await import("node:child_process");
+    const { Database } = await import("bun:sqlite");
+    const db = new Database("/home/team/.data/agent-team-cc229006.db");
     const id = crypto.randomUUID();
-    const result = execSync(
-              `sqlite3 /home/team/.data/agent-team-cc229006.db "INSERT INTO businesses (id, name, email, phone, venue_type, description, address, city, state, membership_tier, membership_status, photo_url) VALUES ('${id}', '${data.name.replace(/'/g, "''")}', '${data.email.replace(/'/g, "''")}', '${data.phone.replace(/'/g, "''")}', '${data.venue_type}', '${data.description.replace(/'/g, "''")}', '${data.address.replace(/'/g, "''")}', '${data.city}', 'CO', '${data.plan}', 'trial', '${data.photo_url}')"`
-            ).toString();
-    return { success: true, businessId: id };
+    try {
+      db.query(`
+        INSERT INTO businesses (id, name, email, phone, venue_type, description, address, city, state, membership_tier, membership_status, photo_url)
+        VALUES ($id, $name, $email, $phone, $venue_type, $description, $address, $city, 'CO', $plan, 'trial', $photo_url)
+      `).run({
+        $id: id,
+        $name: data.name,
+        $email: data.email,
+        $phone: data.phone,
+        $venue_type: data.venue_type,
+        $description: data.description,
+        $address: data.address,
+        $city: data.city,
+        $plan: data.plan,
+        $photo_url: data.photo_url,
+      });
+      return { success: true, businessId: id };
+    } finally {
+      db.close();
+    }
   });
 
 export const Route = createFileRoute("/onboarding/business")({

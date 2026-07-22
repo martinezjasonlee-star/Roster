@@ -91,32 +91,98 @@ function Home() {
         </div>
       </section>
 
-      {/* How It Works — Workers */}
-      <section className="px-6 py-20">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-[#0F172A]">Your calendar. Your rates. Your roster.</h2>
-          <p className="text-center text-[#0F172A] mb-12 max-w-xl mx-auto">Work when you want, where you want, and keep 100% of what you earn.</p>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="border border-slate-200 rounded-xl p-8">
-              <div className="w-10 h-10 rounded-full bg-[#0F172A] text-white flex items-center justify-center font-bold text-lg mb-4">1</div>
-              <h3 className="text-xl font-bold mb-2">Create your profile</h3>
-              <p className="text-[#0F172A]">Show your experience, certifications (TIPS, ServSafe), venue preferences, and availability.</p>
+      {/* For Bartenders & Servers */}
+      <section className="px-6 py-24 bg-gradient-to-br from-[#0F172A] to-[#1E293B] text-white relative overflow-hidden">
+        {/* Subtle decorative circles */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[#E8633B]/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="max-w-6xl mx-auto relative z-10">
+          <div className="grid lg:grid-cols-12 gap-16 items-center">
+            {/* Left Column: Headline & Value Propositions */}
+            <div className="lg:col-span-5 space-y-8">
+              <div>
+                <span className="inline-block bg-[#E8633B]/10 text-[#E8633B] border border-[#E8633B]/20 rounded-full px-4 py-1.5 text-sm font-semibold tracking-wide uppercase mb-4">
+                  For Bartenders & Servers
+                </span>
+                <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 text-white">
+                  Your skills are in demand. <br />
+                  <span className="text-[#E8633B]">Your schedule should be yours.</span>
+                </h2>
+                <p className="text-slate-300 text-lg leading-relaxed">
+                  Join Denver-Boulder's premier on-demand hospitality network. Cut out the middlemen, control your calendar, and get booked directly by top venues.
+                </p>
+              </div>
+
+              {/* Value list with checks */}
+              <ul className="space-y-4">
+                {[
+                  "Keep every single dollar you earn (100% of your rate)",
+                  "Work when you want, where you want",
+                  "No membership fee — free to join, free forever",
+                  "Build repeat relationships with quality venues"
+                ].map((bullet, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#E8633B]/25 text-[#E8633B] flex items-center justify-center font-bold text-sm mt-0.5">
+                      ✓
+                    </span>
+                    <span className="text-slate-200 font-medium text-base">{bullet}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="pt-2">
+                <a href="/onboarding/worker" className="inline-block bg-[#E8633B] text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#d4552e] transition shadow-lg shadow-[#E8633B]/20 transform hover:-translate-y-0.5 active:translate-y-0">
+                  Join Free as a Worker →
+                </a>
+              </div>
             </div>
-            <div className="border border-slate-200 rounded-xl p-8">
-              <div className="w-10 h-10 rounded-full bg-[#0F172A] text-white flex items-center justify-center font-bold text-lg mb-4">2</div>
-              <h3 className="text-xl font-bold mb-2">Browse or accept</h3>
-              <p className="text-[#0F172A]">Shifts appear that match your skills, location, and schedule. Accept with one tap.</p>
+
+            {/* Right Column: Three Step Timeline */}
+            <div className="lg:col-span-7 bg-white/5 border border-white/10 rounded-2xl p-8 md:p-12 backdrop-blur-sm">
+              <h3 className="text-2xl font-bold text-white mb-8 border-b border-white/10 pb-4">
+                How Roster works for you:
+              </h3>
+
+              <div className="space-y-12 relative">
+                {/* Visual line connecting steps */}
+                <div className="absolute top-2 bottom-2 left-6 w-0.5 bg-gradient-to-b from-[#E8633B] via-[#E8633B]/50 to-slate-700 pointer-events-none hidden md:block" />
+
+                {[
+                  {
+                    step: "1",
+                    title: "Create your profile",
+                    desc: "Takes 2 minutes. Add your verified experience, hospitality certifications (TIPS, ServSafe), venue preferences, and regular availability.",
+                    icon: "👤"
+                  },
+                  {
+                    step: "2",
+                    title: "Browse and accept shifts",
+                    desc: "Shifts matching your exact criteria appear instantly on your feed. View hourly rates up front, check out dress code, and accept in one tap.",
+                    icon: "📱"
+                  },
+                  {
+                    step: "3",
+                    title: "Work and earn",
+                    desc: "Show up, do what you do best, get paid directly. No agency taking a cut. Build relationships.",
+                    icon: "🍹"
+                  }
+                ].map((s, idx) => (
+                  <div key={idx} className="flex gap-6 relative group">
+                    <div className="w-12 h-12 rounded-full bg-[#0F172A] border-2 border-[#E8633B] text-white flex items-center justify-center font-extrabold text-lg flex-shrink-0 relative z-10 shadow-md">
+                      {s.step}
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">{s.icon}</span>
+                        <h4 className="text-xl font-bold text-white">{s.title}</h4>
+                      </div>
+                      <p className="text-slate-300 leading-relaxed text-sm">{s.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="border border-slate-200 rounded-xl p-8">
-              <div className="w-10 h-10 rounded-full bg-[#0F172A] text-white flex items-center justify-center font-bold text-lg mb-4">3</div>
-              <h3 className="text-xl font-bold mb-2">Work and earn</h3>
-              <p className="text-[#0F172A]">Show up, do what you do best, get paid directly. No agency taking a cut. Build relationships.</p>
-            </div>
-          </div>
-          <div className="text-center mt-8">
-            <a href="/onboarding/worker" className="inline-block border-2 border-[#0F172A] text-[#0F172A] px-8 py-3 rounded-lg font-semibold hover:bg-[#0F172A] hover:text-white transition">
-              Join Free as a Bartender or Server →
-            </a>
           </div>
         </div>
       </section>

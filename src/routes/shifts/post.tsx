@@ -6,20 +6,78 @@ import { useState, useEffect } from "react";
 const saveShift = createServerFn({ method: "POST" })
   .validator((data: { form: any; email: string }) => data)
   .handler(async ({ data }) => {
-    const { execSync } = await import("node:child_process");
+    const { Database } = await import("bun:sqlite");
+    const db = new Database("/home/team/.data/agent-team-cc229006.db");
     const id = crypto.randomUUID();
-    const dbPath = "/home/team/.data/agent-team-cc229006.db";
 
-    // Look up the business ID by email
-    let bizId = data.email ? (() => {
-      const result = execSync(`sqlite3 "${dbPath}" "SELECT id FROM businesses WHERE email='${data.email.replace(/'/g, "''")}'"`);
-      return result.toString().trim() || null;
-    })() : null;
+    try {
+      // Find business info
+      let bizId = "demo-business";
+      let bizName = "Roster Venue";
+      if (data.email) {
+        const business = db.query(`SELECT id, name FROM businesses WHERE email = $email LIMIT 1`).get({ $email: data.email }) as any;
+        if (business) {
+          bizId = business.id;
+          bizName = business.name;
+        }
+      }
 
-    if (!bizId) bizId = data.form.business_id || "demo-business";
+      // Insert shift
+      db.query(`
+        INSERT INTO shifts (id, business_id, role_type, status, shift_type, date, start_time, end_time, workers_needed, hourly_rate, tips_included, pay_type, dress_code, certifications_required, notes, location_name)
+        VALUES ($id, $business_id, $role_type, 'open', $shift_type, $date, $start_time, $end_time, $workers_needed, $hourly_rate, 1, 'hourly_plus_tips', $dress_code, $certs_required, $notes, $location_name)
+      `).run({
+        $id: id,
+        $business_id: bizId,
+        $role_type: data.form.role_type,
+        $shift_type: data.form.shift_type,
+        $date: data.form.date,
+        $start_time: data.form.start_time,
+        $end_time: data.form.end_time,
+        $workers_needed: Number(data.form.workers_needed),
+        $hourly_rate: Number(data.form.hourly_rate),
+        $dress_code: data.form.dress_code,
+        $certs_required: data.form.certs_required,
+        $notes: data.form.notes,
+        $location_name: data.form.location_name || bizName,
+      });
 
-    execSync(`sqlite3 "${dbPath}" "INSERT INTO shifts (id, business_id, role_type, status, shift_type, date, start_time, end_time, workers_needed, hourly_rate, tips_included, pay_type, dress_code, certifications_required, notes, location_name) VALUES ('${id}', '${bizId}', '${data.form.role_type}', 'open', '${data.form.shift_type}', '${data.form.date}', '${data.form.start_time}', '${data.form.end_time}', ${data.form.workers_needed}, ${data.form.hourly_rate}, 1, 'hourly_plus_tips', '${data.form.dress_code}', '${data.form.certs_required}', '${data.form.notes.replace(/'/g, "''")}', '${data.form.location_name.replace(/'/g, "''")}')"`);
-    return { success: true, shiftId: id };
+      // Find matching workers to notify
+      const targetRole = data.form.role_type;
+      let workersToNotify: any[] = [];
+      if (targetRole === "bartender") {
+        workersToNotify = db.query(`SELECT email, first_name FROM workers WHERE role_type = 'bartender' OR role_type = 'both'`).all();
+      } else if (targetRole === "server") {
+        workersToNotify = db.query(`SELECT email, first_name FROM workers WHERE role_type = 'server' OR role_type = 'both'`).all();
+      } else {
+        workersToNotify = db.query(`SELECT email, first_name FROM workers`).all(); // fallback to all workers
+      }
+
+      const roleName = targetRole.charAt(0).toUpperCase() + targetRole.slice(1).replace(/_/g, " ");
+
+      // Insert shift posted notifications for matches
+      for (const w of workersToNotify) {
+        if (w.email) {
+          const notifId = crypto.randomUUID();
+          const subject = `New shift: ${roleName} shift posted at ${data.form.location_name || bizName}`;
+          const body = `Hi ${w.first_name},\n\nA new ${roleName} shift is available on Roster!\n\nShift Details:\n- Role: ${roleName}\n- Date: ${data.form.date}\n- Hours: ${data.form.start_time} - ${data.form.end_time}\n- Rate: ${data.form.hourly_rate}/hr\n- Venue: ${data.form.location_name || bizName}\n\nApply now to claim the shift: https://roster-work.com/shifts/browse\n\nBest,\nThe Roster Team`;
+          
+          db.query(`
+            INSERT INTO notifications (id, recipient_email, subject, body, status)
+            VALUES ($id, $recipient_email, $subject, $body, 'pending')
+          `).run({
+            $id: notifId,
+            $recipient_email: w.email,
+            $subject: subject,
+            $body: body,
+          });
+        }
+      }
+
+      return { success: true, shiftId: id };
+    } finally {
+      db.close();
+    }
   });
 
 export const Route = createFileRoute("/shifts/post")({

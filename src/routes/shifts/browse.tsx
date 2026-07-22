@@ -12,15 +12,57 @@ const getShifts = createServerFn({ method: "GET" }).handler(async () => {
 const applyToShift = createServerFn({ method: "POST" })
   .validator((data: { shiftId: string; email: string; businessId?: string }) => data)
   .handler(async ({ data }) => {
-    const { execSync } = await import("node:child_process");
+    const { Database } = await import("bun:sqlite");
+    const db = new Database("/home/team/.data/agent-team-cc229006.db");
     const id = crypto.randomUUID();
-    const db = "/home/team/.data/agent-team-cc229006.db";
-    // Look up the worker's actual DB ID by email
-    const workerResult = execSync(`sqlite3 -json ${db} "SELECT id FROM workers WHERE email='${data.email.replace(/'/g, "''")}' LIMIT 1"`);
-    const workers = JSON.parse(workerResult.toString().trim());
-    const workerId = workers[0]?.id || "unknown-worker";
-    execSync(`sqlite3 ${db} "INSERT INTO bookings (id, shift_id, worker_id, business_id, status) VALUES ('${id}', '${data.shiftId}', '${workerId}', '${data.businessId || "pending"}', 'pending')"`);
-    return { success: true, bookingId: id };
+    try {
+      // Find worker info
+      const worker = db.query(`SELECT id, first_name, last_name FROM workers WHERE email = $email LIMIT 1`).get({ $email: data.email }) as any;
+      if (!worker) {
+        throw new Error("Worker profile not found.");
+      }
+
+      // Find shift info
+      const shift = db.query(`SELECT role_type, date, location_name FROM shifts WHERE id = $id LIMIT 1`).get({ $id: data.shiftId }) as any;
+
+      // Find business info
+      const business = db.query(`SELECT email, name FROM businesses WHERE id = $id LIMIT 1`).get({ $id: data.businessId }) as any;
+
+      // Insert booking
+      db.query(`
+        INSERT INTO bookings (id, shift_id, worker_id, business_id, status)
+        VALUES ($id, $shift_id, $worker_id, $business_id, 'pending')
+      `).run({
+        $id: id,
+        $shift_id: data.shiftId,
+        $worker_id: worker.id,
+        $business_id: data.businessId || "demo-business",
+      });
+
+      // Insert notification
+      if (business && business.email) {
+        const notifId = crypto.randomUUID();
+        const workerName = `${worker.first_name} ${worker.last_name}`;
+        const roleName = shift?.role_type ? shift.role_type.charAt(0).toUpperCase() + shift.role_type.slice(1) : "Staff";
+        const shiftDate = shift?.date || "upcoming date";
+        const subject = `New applicant: ${workerName} applied for your ${roleName} shift`;
+        const body = `Hi ${business.name || "Venue Manager"},\n\nGood news! ${workerName} has applied to cover your ${roleName} shift on ${shiftDate}.\n\nLog in to your Roster dashboard (https://roster-work.com/dashboard) to review their profile, experience, and confirm the booking.\n\nBest,\nThe Roster Team`;
+        
+        db.query(`
+          INSERT INTO notifications (id, recipient_email, subject, body, status)
+          VALUES ($id, $recipient_email, $subject, $body, 'pending')
+        `).run({
+          $id: notifId,
+          $recipient_email: business.email,
+          $subject: subject,
+          $body: body,
+        });
+      }
+
+      return { success: true, bookingId: id };
+    } finally {
+      db.close();
+    }
   });
 
 export const Route = createFileRoute("/shifts/browse")({

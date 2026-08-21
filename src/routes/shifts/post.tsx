@@ -6,8 +6,11 @@ import { useState, useEffect } from "react";
 const saveShift = createServerFn({ method: "POST" })
   .validator((data: { form: any; email: string }) => data)
   .handler(async ({ data }) => {
-    const { Database } = await import("bun:sqlite");
-    const db = new Database("/home/team/.data/agent-team-cc229006.db");
+    const { execSync } = await import("node:child_process");
+    const crypto = await import("node:crypto");
+    const DB_PATH = "/home/team/.data/agent-team-cc229006.db";
+    const esc = (s: string) => s.replace(/'/g, "''");
+
     const id = crypto.randomUUID();
 
     try {
@@ -15,43 +18,29 @@ const saveShift = createServerFn({ method: "POST" })
       let bizId = "demo-business";
       let bizName = "Roster Venue";
       if (data.email) {
-        const business = db.query(`SELECT id, name FROM businesses WHERE email = $email LIMIT 1`).get({ $email: data.email }) as any;
-        if (business) {
-          bizId = business.id;
-          bizName = business.name;
+        const bizRes = execSync(`sqlite3 -json ${DB_PATH} "SELECT id, name FROM businesses WHERE email = '${esc(data.email)}' LIMIT 1"`).toString().trim();
+        const businesses = JSON.parse(bizRes || "[]");
+        if (businesses.length > 0) {
+          bizId = businesses[0].id;
+          bizName = businesses[0].name;
         }
       }
 
+      const locName = data.form.location_name || bizName;
+
       // Insert shift
-      db.query(`
-        INSERT INTO shifts (id, business_id, role_type, status, shift_type, date, start_time, end_time, workers_needed, hourly_rate, tips_included, pay_type, dress_code, certifications_required, notes, location_name)
-        VALUES ($id, $business_id, $role_type, 'open', $shift_type, $date, $start_time, $end_time, $workers_needed, $hourly_rate, 1, 'hourly_plus_tips', $dress_code, $certs_required, $notes, $location_name)
-      `).run({
-        $id: id,
-        $business_id: bizId,
-        $role_type: data.form.role_type,
-        $shift_type: data.form.shift_type,
-        $date: data.form.date,
-        $start_time: data.form.start_time,
-        $end_time: data.form.end_time,
-        $workers_needed: Number(data.form.workers_needed),
-        $hourly_rate: Number(data.form.hourly_rate),
-        $dress_code: data.form.dress_code,
-        $certs_required: data.form.certs_required,
-        $notes: data.form.notes,
-        $location_name: data.form.location_name || bizName,
-      });
+      execSync(`sqlite3 ${DB_PATH} "INSERT INTO shifts (id, business_id, role_type, status, shift_type, date, start_time, end_time, workers_needed, hourly_rate, tips_included, pay_type, dress_code, certifications_required, notes, location_name) VALUES ('${id}', '${bizId}', '${esc(data.form.role_type)}', 'open', '${esc(data.form.shift_type)}', '${esc(data.form.date)}', '${esc(data.form.start_time)}', '${esc(data.form.end_time)}', ${Number(data.form.workers_needed)}, ${Number(data.form.hourly_rate)}, 1, 'hourly_plus_tips', '${esc(data.form.dress_code)}', '${esc(data.form.certs_required || "")}', '${esc(data.form.notes || "")}', '${esc(locName)}')"`);
 
       // Find matching workers to notify
       const targetRole = data.form.role_type;
-      let workersToNotify: any[] = [];
+      let queryRole = "SELECT email, first_name FROM workers";
       if (targetRole === "bartender") {
-        workersToNotify = db.query(`SELECT email, first_name FROM workers WHERE role_type = 'bartender' OR role_type = 'both'`).all();
+        queryRole = "SELECT email, first_name FROM workers WHERE role_type = 'bartender' OR role_type = 'both'";
       } else if (targetRole === "server") {
-        workersToNotify = db.query(`SELECT email, first_name FROM workers WHERE role_type = 'server' OR role_type = 'both'`).all();
-      } else {
-        workersToNotify = db.query(`SELECT email, first_name FROM workers`).all(); // fallback to all workers
+        queryRole = "SELECT email, first_name FROM workers WHERE role_type = 'server' OR role_type = 'both'";
       }
+      const workersRes = execSync(`sqlite3 -json ${DB_PATH} "${queryRole}"`).toString().trim();
+      const workersToNotify = JSON.parse(workersRes || "[]");
 
       const roleName = targetRole.charAt(0).toUpperCase() + targetRole.slice(1).replace(/_/g, " ");
 
@@ -59,24 +48,17 @@ const saveShift = createServerFn({ method: "POST" })
       for (const w of workersToNotify) {
         if (w.email) {
           const notifId = crypto.randomUUID();
-          const subject = `New shift: ${roleName} shift posted at ${data.form.location_name || bizName}`;
-          const body = `Hi ${w.first_name},\n\nA new ${roleName} shift is available on Roster!\n\nShift Details:\n- Role: ${roleName}\n- Date: ${data.form.date}\n- Hours: ${data.form.start_time} - ${data.form.end_time}\n- Rate: ${data.form.hourly_rate}/hr\n- Venue: ${data.form.location_name || bizName}\n\nApply now to claim the shift: https://roster-work.com/shifts/browse\n\nBest,\nThe Roster Team`;
+          const subject = `New shift: ${roleName} shift posted at ${locName}`;
+          const body = `Hi ${w.first_name || "there"},\n\nA new ${roleName} shift is available on Roster!\n\nShift Details:\n- Role: ${roleName}\n- Date: ${data.form.date}\n- Hours: ${data.form.start_time} - ${data.form.end_time}\n- Rate: ${data.form.hourly_rate}/hr\n- Venue: ${locName}\n\nApply now to claim the shift: https://roster-work.com/shifts/browse\n\nBest,\nThe Roster Team`;
           
-          db.query(`
-            INSERT INTO notifications (id, recipient_email, subject, body, status)
-            VALUES ($id, $recipient_email, $subject, $body, 'pending')
-          `).run({
-            $id: notifId,
-            $recipient_email: w.email,
-            $subject: subject,
-            $body: body,
-          });
+          execSync(`sqlite3 ${DB_PATH} "INSERT INTO notifications (id, recipient_email, subject, body, status) VALUES ('${notifId}', '${esc(w.email)}', '${esc(subject)}', '${esc(body)}', 'pending')"`);
         }
       }
 
       return { success: true, shiftId: id };
-    } finally {
-      db.close();
+    } catch (e) {
+      console.error("saveShift error:", e);
+      throw e;
     }
   });
 

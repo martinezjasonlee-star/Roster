@@ -12,32 +12,35 @@ const getShifts = createServerFn({ method: "GET" }).handler(async () => {
 const applyToShift = createServerFn({ method: "POST" })
   .validator((data: { shiftId: string; email: string; businessId?: string }) => data)
   .handler(async ({ data }) => {
-    const { Database } = await import("bun:sqlite");
-    const db = new Database("/home/team/.data/agent-team-cc229006.db");
+    const { execSync } = await import("node:child_process");
+    const crypto = await import("node:crypto");
+    const DB_PATH = "/home/team/.data/agent-team-cc229006.db";
+    const esc = (s: string) => s.replace(/'/g, "''");
+
     const id = crypto.randomUUID();
     try {
       // Find worker info
-      const worker = db.query(`SELECT id, first_name, last_name FROM workers WHERE email = $email LIMIT 1`).get({ $email: data.email }) as any;
-      if (!worker) {
+      const workerRes = execSync(`sqlite3 -json ${DB_PATH} "SELECT id, first_name, last_name FROM workers WHERE email = '${esc(data.email)}' LIMIT 1"`).toString().trim();
+      const workers = JSON.parse(workerRes || "[]");
+      if (workers.length === 0) {
         throw new Error("Worker profile not found.");
       }
+      const worker = workers[0];
 
       // Find shift info
-      const shift = db.query(`SELECT role_type, date, location_name FROM shifts WHERE id = $id LIMIT 1`).get({ $id: data.shiftId }) as any;
+      const shiftRes = execSync(`sqlite3 -json ${DB_PATH} "SELECT role_type, date, location_name FROM shifts WHERE id = '${esc(data.shiftId)}' LIMIT 1"`).toString().trim();
+      const shifts = JSON.parse(shiftRes || "[]");
+      const shift = shifts[0] || null;
 
       // Find business info
-      const business = db.query(`SELECT email, name FROM businesses WHERE id = $id LIMIT 1`).get({ $id: data.businessId }) as any;
+      const bizRes = execSync(`sqlite3 -json ${DB_PATH} "SELECT email, name FROM businesses WHERE id = '${esc(data.businessId || "")}' LIMIT 1"`).toString().trim();
+      const businesses = JSON.parse(bizRes || "[]");
+      const business = businesses[0] || null;
+
+      const bizId = data.businessId || "demo-business";
 
       // Insert booking
-      db.query(`
-        INSERT INTO bookings (id, shift_id, worker_id, business_id, status)
-        VALUES ($id, $shift_id, $worker_id, $business_id, 'pending')
-      `).run({
-        $id: id,
-        $shift_id: data.shiftId,
-        $worker_id: worker.id,
-        $business_id: data.businessId || "demo-business",
-      });
+      execSync(`sqlite3 ${DB_PATH} "INSERT INTO bookings (id, shift_id, worker_id, business_id, status) VALUES ('${id}', '${esc(data.shiftId)}', '${esc(worker.id)}', '${esc(bizId)}', 'pending')"`);
 
       // Insert notification
       if (business && business.email) {
@@ -48,20 +51,13 @@ const applyToShift = createServerFn({ method: "POST" })
         const subject = `New applicant: ${workerName} applied for your ${roleName} shift`;
         const body = `Hi ${business.name || "Venue Manager"},\n\nGood news! ${workerName} has applied to cover your ${roleName} shift on ${shiftDate}.\n\nLog in to your Roster dashboard (https://roster-work.com/dashboard) to review their profile, experience, and confirm the booking.\n\nBest,\nThe Roster Team`;
         
-        db.query(`
-          INSERT INTO notifications (id, recipient_email, subject, body, status)
-          VALUES ($id, $recipient_email, $subject, $body, 'pending')
-        `).run({
-          $id: notifId,
-          $recipient_email: business.email,
-          $subject: subject,
-          $body: body,
-        });
+        execSync(`sqlite3 ${DB_PATH} "INSERT INTO notifications (id, recipient_email, subject, body, status) VALUES ('${notifId}', '${esc(business.email)}', '${esc(subject)}', '${esc(body)}', 'pending')"`);
       }
 
       return { success: true, bookingId: id };
-    } finally {
-      db.close();
+    } catch (e) {
+      console.error("applyToShift error:", e);
+      throw e;
     }
   });
 

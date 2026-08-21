@@ -58,3 +58,13 @@ for (let attempt = 1; ; attempt++) {
 }
 
 console.log(`team-site serving on http://${HOST}:${String(PORT)}`);
+
+// Background notification dispatch running every 60 seconds
+setInterval(async () => {
+  try {
+    const { dispatchNotifications } = await import("./scripts/dispatch-notifications.ts");
+    dispatchNotifications();
+  } catch (error) {
+    console.error("Error running background notification dispatch:", error);
+  }
+}, 60000);

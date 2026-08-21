@@ -153,39 +153,37 @@ export const getWorkerDashboard = createServerFn({ method: "GET" })
 export const updateBookingStatus = createServerFn({ method: "POST" })
   .validator((data: { bookingId: string; status: "confirmed" | "declined" | "cancelled" | "completed" | "no_show" }) => data)
   .handler(async ({ data }) => {
-    const { Database } = await import("bun:sqlite");
-    const db = new Database("/home/team/.data/agent-team-cc229006.db");
     const { bookingId, status } = data;
     const now = new Date().toISOString();
 
     try {
       // 1. Fetch current booking info (needed for shift & worker lookup)
-      const booking = db.query(`SELECT * FROM bookings WHERE id = $id LIMIT 1`).get({ $id: bookingId }) as any;
-      if (!booking) {
+      const bookings = queryDb<any>(`SELECT * FROM bookings WHERE id = '${esc(bookingId)}' LIMIT 1`);
+      if (bookings.length === 0) {
         throw new Error("Booking not found");
       }
+      const booking = bookings[0];
 
       // 2. Perform main UPDATE
-      let queryStr = `UPDATE bookings SET status = $status`;
+      let queryStr = `UPDATE bookings SET status = '${esc(status)}'`;
       if (status === "confirmed") {
-        queryStr += `, confirmed_at = $now`;
+        queryStr += `, confirmed_at = '${esc(now)}'`;
       } else if (status === "completed") {
-        queryStr += `, completed_at = $now`;
+        queryStr += `, completed_at = '${esc(now)}'`;
       }
-      queryStr += ` WHERE id = $id`;
+      queryStr += ` WHERE id = '${esc(bookingId)}'`;
 
-      db.query(queryStr).run({
-        $status: status,
-        $now: now,
-        $id: bookingId,
-      });
+      execDb(queryStr);
 
       // 3. If accepted ("confirmed") or declined, notify the worker!
-      if ((status === "confirmed" || status === "declined")) {
+      if (status === "confirmed" || status === "declined") {
         // Fetch worker, shift, and business names for personal touch
-        const worker = db.query(`SELECT email, first_name FROM workers WHERE id = $id LIMIT 1`).get({ $id: booking.worker_id }) as any;
-        const shift = db.query(`SELECT role_type, date FROM shifts WHERE id = $id LIMIT 1`).get({ $id: booking.shift_id }) as any;
-        const business = db.query(`SELECT name FROM businesses WHERE id = $id LIMIT 1`).get({ $id: booking.business_id }) as any;
+        const workerRes = queryDb<any>(`SELECT email, first_name FROM workers WHERE id = '${esc(booking.worker_id)}' LIMIT 1`);
+        const worker = workerRes[0];
+        const shiftRes = queryDb<any>(`SELECT role_type, date FROM shifts WHERE id = '${esc(booking.shift_id)}' LIMIT 1`);
+        const shift = shiftRes[0];
+        const businessRes = queryDb<any>(`SELECT name FROM businesses WHERE id = '${esc(booking.business_id)}' LIMIT 1`);
+        const business = businessRes[0];
 
         if (worker && worker.email) {
           const roleName = shift?.role_type ? shift.role_type.charAt(0).toUpperCase() + shift.role_type.slice(1).replace(/_/g, " ") : "Shift";
@@ -203,49 +201,34 @@ export const updateBookingStatus = createServerFn({ method: "POST" })
             body = `Hi ${worker.first_name || "there"},\n\nThank you for applying to cover the ${roleName} shift on ${shiftDate} at ${bizName}.\n\nUnfortunately, the venue has moved forward with another applicant for this particular shift. Don't worry — there are many other open opportunities on Roster!\n\nBrowse other available shifts here: https://roster-work.com/shifts/browse\n\nBest,\nThe Roster Team`;
           }
 
-          db.query(`
-            INSERT INTO notifications (id, recipient_email, subject, body, status)
-            VALUES ($id, $recipient_email, $subject, $body, 'pending')
-          `).run({
-            $id: crypto.randomUUID(),
-            $recipient_email: worker.email,
-            $subject: subject,
-            $body: body,
-          });
+          const notifId = crypto.randomUUID();
+          execDb(`INSERT INTO notifications (id, recipient_email, subject, body, status) VALUES ('${notifId}', '${esc(worker.email)}', '${esc(subject)}', '${esc(body)}', 'pending')`);
         }
       }
 
       // 4. Extra logic for "confirmed" state
       if (status === "confirmed") {
         const shiftId = booking.shift_id;
-        const shift = db.query(`SELECT workers_needed FROM shifts WHERE id = $id LIMIT 1`).get({ $id: shiftId }) as any;
-        const confirmedCount = db.query(`SELECT COUNT(*) as count FROM bookings WHERE shift_id = $id AND status = 'confirmed'`).get({ $id: shiftId }) as any;
+        const shiftRes = queryDb<any>(`SELECT workers_needed FROM shifts WHERE id = '${esc(shiftId)}' LIMIT 1`);
+        const shift = shiftRes[0];
+        const confirmedCountRes = queryDb<any>(`SELECT COUNT(*) as count FROM bookings WHERE shift_id = '${esc(shiftId)}' AND status = 'confirmed'`);
+        const confirmedCount = confirmedCountRes[0];
         
         if (shift && confirmedCount) {
           if (confirmedCount.count >= shift.workers_needed) {
-            db.query(`UPDATE shifts SET status = 'filled' WHERE id = $id`).run({ $id: shiftId });
+            execDb(`UPDATE shifts SET status = 'filled' WHERE id = '${esc(shiftId)}'`);
           }
         }
 
         // Send an automated confirmation system message to start the thread
-        db.query(`
-          INSERT INTO messages (id, sender_type, sender_id, recipient_id, content, booking_id, shift_id)
-          VALUES ($id, 'business', $business_id, $worker_id, 'Application Confirmed! Looking forward to working with you.', $booking_id, $shift_id)
-        `).run({
-          $id: crypto.randomUUID(),
-          $business_id: booking.business_id,
-          $worker_id: booking.worker_id,
-          $booking_id: bookingId,
-          $shift_id: shiftId,
-        });
+        const msgId = crypto.randomUUID();
+        execDb(`INSERT INTO messages (id, sender_type, sender_id, recipient_id, content, booking_id, shift_id) VALUES ('${msgId}', 'business', '${esc(booking.business_id)}', '${esc(booking.worker_id)}', 'Application Confirmed! Looking forward to working with you.', '${esc(bookingId)}', '${esc(shiftId)}')`);
       }
 
       return { success: true };
     } catch (e) {
       console.error("updateBookingStatus Error:", e);
       return { success: false };
-    } finally {
-      db.close();
     }
   });
 
@@ -325,8 +308,6 @@ export const getMessagesBetween = createServerFn({ method: "GET" })
 export const sendMessage = createServerFn({ method: "POST" })
   .validator((data: { email: string; recipientId: string; content: string; bookingId?: string; shiftId?: string }) => data)
   .handler(async ({ data }) => {
-    const { Database } = await import("bun:sqlite");
-    const db = new Database("/home/team/.data/agent-team-cc229006.db");
     const { email, recipientId, content, bookingId, shiftId } = data;
 
     try {
@@ -341,30 +322,22 @@ export const sendMessage = createServerFn({ method: "POST" })
       // Deduce booking_id or shift_id if not supplied but exists in database
       let bId = bookingId || "general";
       if (bId === "general") {
-        const activeBooking = db.query(`
+        const activeBookingRes = queryDb<any>(`
           SELECT id, shift_id FROM bookings 
-          WHERE (business_id = $my_id AND worker_id = $recipient_id)
-             OR (business_id = $recipient_id AND worker_id = $my_id)
+          WHERE (business_id = '${esc(myId)}' AND worker_id = '${esc(recipientId)}')
+             OR (business_id = '${esc(recipientId)}' AND worker_id = '${esc(myId)}')
           LIMIT 1
-        `).get({ $my_id: myId, $recipient_id: recipientId }) as any;
-        if (activeBooking) {
-          bId = activeBooking.id;
+        `);
+        if (activeBookingRes.length > 0) {
+          bId = activeBookingRes[0].id;
         }
       }
 
       // Insert message
-      db.query(`
+      execDb(`
         INSERT INTO messages (id, sender_type, sender_id, recipient_id, content, booking_id, shift_id) 
-        VALUES ($id, $sender_type, $sender_id, $recipient_id, $content, $booking_id, $shift_id)
-      `).run({
-        $id: id,
-        $sender_type: userRes.type,
-        $sender_id: myId,
-        $recipient_id: recipientId,
-        $content: content,
-        $booking_id: bId,
-        $shift_id: shiftId || null,
-      });
+        VALUES ('${id}', '${esc(userRes.type)}', '${esc(myId)}', '${esc(recipientId)}', '${esc(content)}', '${esc(bId)}', ${shiftId ? `'${esc(shiftId)}'` : "NULL"})
+      `);
 
       // Retrieve recipient details and queue notification
       let recipientEmail = "";
@@ -373,25 +346,25 @@ export const sendMessage = createServerFn({ method: "POST" })
 
       if (userRes.type === "business") {
         // Sender: Business, Recipient: Worker
-        const worker = db.query(`SELECT email, first_name FROM workers WHERE id = $id LIMIT 1`).get({ $id: recipientId }) as any;
-        if (worker) {
-          recipientEmail = worker.email;
-          recipientName = worker.first_name;
+        const workerRes = queryDb<any>(`SELECT email, first_name FROM workers WHERE id = '${esc(recipientId)}' LIMIT 1`);
+        if (workerRes.length > 0) {
+          recipientEmail = workerRes[0].email;
+          recipientName = workerRes[0].first_name;
         }
-        const business = db.query(`SELECT name FROM businesses WHERE id = $id LIMIT 1`).get({ $id: myId }) as any;
-        if (business) {
-          senderName = business.name;
+        const businessRes = queryDb<any>(`SELECT name FROM businesses WHERE id = '${esc(myId)}' LIMIT 1`);
+        if (businessRes.length > 0) {
+          senderName = businessRes[0].name;
         }
       } else {
         // Sender: Worker, Recipient: Business
-        const business = db.query(`SELECT email, name FROM businesses WHERE id = $id LIMIT 1`).get({ $id: recipientId }) as any;
-        if (business) {
-          recipientEmail = business.email;
-          recipientName = business.name;
+        const businessRes = queryDb<any>(`SELECT email, name FROM businesses WHERE id = '${esc(recipientId)}' LIMIT 1`);
+        if (businessRes.length > 0) {
+          recipientEmail = businessRes[0].email;
+          recipientName = businessRes[0].name;
         }
-        const worker = db.query(`SELECT first_name, last_name FROM workers WHERE id = $id LIMIT 1`).get({ $id: myId }) as any;
-        if (worker) {
-          senderName = `${worker.first_name} ${worker.last_name}`;
+        const workerRes = queryDb<any>(`SELECT first_name, last_name FROM workers WHERE id = '${esc(myId)}' LIMIT 1`);
+        if (workerRes.length > 0) {
+          senderName = `${workerRes[0].first_name} ${workerRes[0].last_name}`;
         }
       }
 
@@ -400,23 +373,16 @@ export const sendMessage = createServerFn({ method: "POST" })
         const subject = `New message on Roster from ${senderName}`;
         const body = `Hi ${recipientName || "there"},\n\nYou have received a new message from ${senderName} on Roster:\n\n"${content}"\n\nReply directly in the Roster message center: https://roster-work.com/messaging\n\nBest,\nThe Roster Team`;
         
-        db.query(`
+        execDb(`
           INSERT INTO notifications (id, recipient_email, subject, body, status)
-          VALUES ($id, $recipient_email, $subject, $body, 'pending')
-        `).run({
-          $id: notifId,
-          $recipient_email: recipientEmail,
-          $subject: subject,
-          $body: body,
-        });
+          VALUES ('${notifId}', '${esc(recipientEmail)}', '${esc(subject)}', '${esc(body)}', 'pending')
+        `);
       }
 
       return { success: true, messageId: id };
     } catch (e) {
       console.error("sendMessage Error:", e);
       return { success: false, messageId: null };
-    } finally {
-      db.close();
     }
   });
 
@@ -427,24 +393,15 @@ export const sendMessage = createServerFn({ method: "POST" })
 export const queueNotification = createServerFn({ method: "POST" })
   .validator((data: { email: string; subject: string; body: string }) => data)
   .handler(async ({ data }) => {
-    const { Database } = await import("bun:sqlite");
-    const db = new Database("/home/team/.data/agent-team-cc229006.db");
     const id = crypto.randomUUID();
     try {
-      db.query(`
+      execDb(`
         INSERT INTO notifications (id, recipient_email, subject, body, status)
-        VALUES ($id, $recipient_email, $subject, $body, 'pending')
-      `).run({
-        $id: id,
-        $recipient_email: data.email,
-        $subject: data.subject,
-        $body: data.body,
-      });
+        VALUES ('${id}', '${esc(data.email)}', '${esc(data.subject)}', '${esc(data.body)}', 'pending')
+      `);
       return { success: true, notificationId: id };
     } catch (e) {
       console.error("queueNotification Error:", e);
       return { success: false, notificationId: null };
-    } finally {
-      db.close();
     }
   });

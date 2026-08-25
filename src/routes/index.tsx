@@ -191,37 +191,37 @@ function Home() {
       <section className="bg-[#0F172A] px-6 py-20">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-white">Built for hospitality.</h2>
-          <p className="text-center text-[#0F172A] mb-12 max-w-xl mx-auto">Every feature designed around how venues and staff actually work.</p>
+          <p className="text-center text-slate-300 mb-12 max-w-xl mx-auto">Every feature designed around how venues and staff actually work.</p>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="bg-white/10 rounded-xl p-6 backdrop-blur-sm">
               <div className="text-[#E8633B] text-2xl mb-3">💰</div>
               <h3 className="text-white font-bold mb-2">Predictable costs</h3>
-              <p className="text-[#0F172A] text-sm">One flat membership fee. No 30% per-shift markup. You know your labor budget before you post.</p>
+              <p className="text-slate-200 text-sm">One flat membership fee. No 30% per-shift markup. You know your labor budget before you post.</p>
             </div>
             <div className="bg-white/10 rounded-xl p-6 backdrop-blur-sm">
               <div className="text-[#E8633B] text-2xl mb-3">✅</div>
               <h3 className="text-white font-bold mb-2">Vetted, not random</h3>
-              <p className="text-[#0F172A] text-sm">Every worker has verified experience, real references, and a reputation score from actual shifts on Roster.</p>
+              <p className="text-slate-200 text-sm">Every worker has verified experience, real references, and a reputation score from actual shifts on Roster.</p>
             </div>
             <div className="bg-white/10 rounded-xl p-6 backdrop-blur-sm">
               <div className="text-[#E8633B] text-2xl mb-3">🍸</div>
               <h3 className="text-white font-bold mb-2">Built for hospitality</h3>
-              <p className="text-[#0F172A] text-sm">Role types, certifications, dress codes, shift types, pay ranges — we speak your language.</p>
+              <p className="text-slate-200 text-sm">Role types, certifications, dress codes, shift types, pay ranges — we speak your language.</p>
             </div>
             <div className="bg-white/10 rounded-xl p-6 backdrop-blur-sm">
               <div className="text-[#E8633B] text-2xl mb-3">🔄</div>
               <h3 className="text-white font-bold mb-2">Relationships, not transactions</h3>
-              <p className="text-[#0F172A] text-sm">The same great bartender who crushed your Friday rush can cover your Saturday brunch. Repeat booking built in.</p>
+              <p className="text-slate-200 text-sm">The same great bartender who crushed your Friday rush can cover your Saturday brunch. Repeat booking built in.</p>
             </div>
             <div className="bg-white/10 rounded-xl p-6 backdrop-blur-sm">
               <div className="text-[#E8633B] text-2xl mb-3">✂️</div>
               <h3 className="text-white font-bold mb-2">Cancel anytime</h3>
-              <p className="text-[#0F172A] text-sm">No long-term contracts. Month-to-month or save with annual. Your membership scales with your needs.</p>
+              <p className="text-slate-200 text-sm">No long-term contracts. Month-to-month or save with annual. Your membership scales with your needs.</p>
             </div>
             <div className="bg-white/10 rounded-xl p-6 backdrop-blur-sm">
               <div className="text-[#E8633B] text-2xl mb-3">🏆</div>
               <h3 className="text-white font-bold mb-2">Workers keep 100%</h3>
-              <p className="text-[#0F172A] text-sm">No agency taking a cut of your wage. Free to join, free to work, free to book your next shift.</p>
+              <p className="text-slate-200 text-sm">No agency taking a cut of your wage. Free to join, free to work, free to book your next shift.</p>
             </div>
           </div>
         </div>
@@ -347,7 +347,7 @@ function Home() {
       <section className="bg-[#0F172A] px-6 py-20 text-center">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Stop overpaying for staffing. Start building your roster.</h2>
-          <p className="text-[#0F172A] mb-8 max-w-lg mx-auto">Join hundreds of venues that have replaced their staffing agency with a flat monthly membership.</p>
+          <p className="text-slate-300 mb-8 max-w-lg mx-auto">Join hundreds of venues that have replaced their staffing agency with a flat monthly membership.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a href="/auth/sign-up" className="inline-block bg-[#E8633B] text-white px-10 py-3.5 rounded-lg font-bold text-lg hover:bg-[#d4552e] transition shadow-lg shadow-[#E8633B]/25">
               Get Started →

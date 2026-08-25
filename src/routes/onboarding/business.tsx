@@ -2,6 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { useState, useEffect } from "react";
+import { execSync } from "node:child_process";
+import crypto from "node:crypto";
+
+const DB_PATH = "/home/team/.data/agent-team-cc229006.db";
 
 const saveBusiness = createServerFn({ method: "POST" })
   .validator((data: {
@@ -16,29 +20,12 @@ const saveBusiness = createServerFn({ method: "POST" })
     photo_url: string;
   }) => data)
   .handler(async ({ data }) => {
-    const { Database } = await import("bun:sqlite");
-    const db = new Database("/home/team/.data/agent-team-cc229006.db");
     const id = crypto.randomUUID();
-    try {
-      db.query(`
-        INSERT INTO businesses (id, name, email, phone, venue_type, description, address, city, state, membership_tier, membership_status, photo_url)
-        VALUES ($id, $name, $email, $phone, $venue_type, $description, $address, $city, 'CO', $plan, 'trial', $photo_url)
-      `).run({
-        $id: id,
-        $name: data.name,
-        $email: data.email,
-        $phone: data.phone,
-        $venue_type: data.venue_type,
-        $description: data.description,
-        $address: data.address,
-        $city: data.city,
-        $plan: data.plan,
-        $photo_url: data.photo_url,
-      });
-      return { success: true, businessId: id };
-    } finally {
-      db.close();
-    }
+    const esc = (s: string) => s.replace(/'/g, "''");
+
+    execSync(`sqlite3 ${DB_PATH} "INSERT INTO businesses (id, name, email, phone, venue_type, description, address, city, state, membership_tier, membership_status, photo_url) VALUES ('${id}', '${esc(data.name)}', '${esc(data.email)}', '${esc(data.phone)}', '${esc(data.venue_type)}', '${esc(data.description)}', '${esc(data.address)}', '${esc(data.city)}', 'CO', '${esc(data.plan)}', 'trial', '${esc(data.photo_url)}')"`);
+
+    return { success: true, businessId: id };
   });
 
 export const Route = createFileRoute("/onboarding/business")({

@@ -2,10 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { useState, useEffect } from "react";
-import { execSync } from "node:child_process";
 import crypto from "node:crypto";
-
-const DB_PATH = "/home/team/.data/agent-team-cc229006.db";
+import { esc, execDb } from "../../lib/db";
 
 const saveWorker = createServerFn({ method: "POST" })
   .validator((data: {
@@ -25,22 +23,19 @@ const saveWorker = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const workerId = crypto.randomUUID();
 
-    // Escape single quotes for SQL
-    const esc = (s: string) => s.replace(/'/g, "''");
-
     // Insert worker
-    execSync(`sqlite3 ${DB_PATH} "INSERT INTO workers (id, email, first_name, last_name, phone, role_type, years_experience, service_style, travel_radius, city, state, is_verified, photo_url) VALUES ('${workerId}', '${esc(data.email)}', '${esc(data.first_name)}', '${esc(data.last_name)}', '${esc(data.phone)}', '${esc(data.role_type)}', ${data.years_experience}, '${esc(data.service_styles.join(","))}', ${data.travel_radius}, '${esc(data.city)}', 'CO', 0, '${esc(data.photo_url)}')"`);
+    execDb(`INSERT INTO workers (id, email, first_name, last_name, phone, role_type, years_experience, service_style, travel_radius, city, state, is_verified, photo_url) VALUES ('${workerId}', '${esc(data.email)}', '${esc(data.first_name)}', '${esc(data.last_name)}', '${esc(data.phone)}', '${esc(data.role_type)}', ${data.years_experience}, '${esc(data.service_styles.join(","))}', ${data.travel_radius}, '${esc(data.city)}', 'CO', 0, '${esc(data.photo_url)}')`);
 
     // Insert certifications
     for (const certId of data.certs) {
       const certId2 = crypto.randomUUID();
-      execSync(`sqlite3 ${DB_PATH} "INSERT INTO worker_certifications (id, worker_id, certification_id, is_verified) VALUES ('${certId2}', '${workerId}', '${esc(certId)}', 0)"`);
+      execDb(`INSERT INTO worker_certifications (id, worker_id, certification_id, is_verified) VALUES ('${certId2}', '${workerId}', '${esc(certId)}', 0)`);
     }
 
     // Insert availability
     for (const slot of data.availability) {
       const slotId = crypto.randomUUID();
-      execSync(`sqlite3 ${DB_PATH} "INSERT INTO worker_availability (id, worker_id, day_of_week, start_time, end_time, is_available) VALUES ('${slotId}', '${workerId}', ${slot.day}, '${slot.start}', '${slot.end}', 1)"`);
+      execDb(`INSERT INTO worker_availability (id, worker_id, day_of_week, start_time, end_time, is_available) VALUES ('${slotId}', '${workerId}', ${slot.day}, '${esc(slot.start)}', '${esc(slot.end)}', 1)`);
     }
 
     return { success: true, workerId };

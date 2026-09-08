@@ -4,43 +4,37 @@ import { useAuth, useUser } from "@clerk/clerk-react";
 import { useState, useEffect } from "react";
 
 const getShifts = createServerFn({ method: "GET" }).handler(async () => {
-  const { execSync } = await import("node:child_process");
-  const result = execSync(`sqlite3 -json /home/team/.data/agent-team-cc229006.db "SELECT id, business_id, role_type, shift_type, date, start_time, end_time, hourly_rate, dress_code, notes, location_name, workers_needed, created_at FROM shifts WHERE status='open' ORDER BY date ASC LIMIT 50"`);
-  return JSON.parse(result.toString());
+  const { queryDb } = await import("../../lib/db");
+  return queryDb(`SELECT id, business_id, role_type, shift_type, date, start_time, end_time, hourly_rate, dress_code, notes, location_name, workers_needed, created_at FROM shifts WHERE status='open' ORDER BY date ASC LIMIT 50`);
 });
 
 const applyToShift = createServerFn({ method: "POST" })
   .validator((data: { shiftId: string; email: string; businessId?: string }) => data)
   .handler(async ({ data }) => {
-    const { execSync } = await import("node:child_process");
     const crypto = await import("node:crypto");
-    const DB_PATH = "/home/team/.data/agent-team-cc229006.db";
-    const esc = (s: string) => s.replace(/'/g, "''");
+    const { esc, execDb, queryDb } = await import("../../lib/db");
 
     const id = crypto.randomUUID();
     try {
       // Find worker info
-      const workerRes = execSync(`sqlite3 -json ${DB_PATH} "SELECT id, first_name, last_name FROM workers WHERE email = '${esc(data.email)}' LIMIT 1"`).toString().trim();
-      const workers = JSON.parse(workerRes || "[]");
+      const workers = queryDb<any>(`SELECT id, first_name, last_name FROM workers WHERE email = '${esc(data.email)}' LIMIT 1`);
       if (workers.length === 0) {
         throw new Error("Worker profile not found.");
       }
       const worker = workers[0];
 
       // Find shift info
-      const shiftRes = execSync(`sqlite3 -json ${DB_PATH} "SELECT role_type, date, location_name FROM shifts WHERE id = '${esc(data.shiftId)}' LIMIT 1"`).toString().trim();
-      const shifts = JSON.parse(shiftRes || "[]");
+      const shifts = queryDb<any>(`SELECT role_type, date, location_name FROM shifts WHERE id = '${esc(data.shiftId)}' LIMIT 1`);
       const shift = shifts[0] || null;
 
       // Find business info
-      const bizRes = execSync(`sqlite3 -json ${DB_PATH} "SELECT email, name FROM businesses WHERE id = '${esc(data.businessId || "")}' LIMIT 1"`).toString().trim();
-      const businesses = JSON.parse(bizRes || "[]");
+      const businesses = queryDb<any>(`SELECT email, name FROM businesses WHERE id = '${esc(data.businessId || "")}' LIMIT 1`);
       const business = businesses[0] || null;
 
       const bizId = data.businessId || "demo-business";
 
       // Insert booking
-      execSync(`sqlite3 ${DB_PATH} "INSERT INTO bookings (id, shift_id, worker_id, business_id, status) VALUES ('${id}', '${esc(data.shiftId)}', '${esc(worker.id)}', '${esc(bizId)}', 'pending')"`);
+      execDb(`INSERT INTO bookings (id, shift_id, worker_id, business_id, status) VALUES ('${id}', '${esc(data.shiftId)}', '${esc(worker.id)}', '${esc(bizId)}', 'pending')`);
 
       // Insert notification
       if (business && business.email) {
@@ -51,7 +45,7 @@ const applyToShift = createServerFn({ method: "POST" })
         const subject = `New applicant: ${workerName} applied for your ${roleName} shift`;
         const body = `Hi ${business.name || "Venue Manager"},\n\nGood news! ${workerName} has applied to cover your ${roleName} shift on ${shiftDate}.\n\nLog in to your Roster dashboard (https://roster-work.com/dashboard) to review their profile, experience, and confirm the booking.\n\nBest,\nThe Roster Team`;
         
-        execSync(`sqlite3 ${DB_PATH} "INSERT INTO notifications (id, recipient_email, subject, body, status) VALUES ('${notifId}', '${esc(business.email)}', '${esc(subject)}', '${esc(body)}', 'pending')"`);
+        execDb(`INSERT INTO notifications (id, recipient_email, subject, body, status) VALUES ('${notifId}', '${esc(business.email)}', '${esc(subject)}', '${esc(body)}', 'pending')`);
       }
 
       return { success: true, bookingId: id };

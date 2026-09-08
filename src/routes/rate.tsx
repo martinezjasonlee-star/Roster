@@ -6,9 +6,10 @@ import { useState, useEffect } from "react";
 const submitRating = createServerFn({ method: "POST" })
   .validator((data: { booking_id: string; rater_type: string; rater_id: string; subject_type: string; subject_id: string; score: number; review: string }) => data)
   .handler(async ({ data }) => {
-    const { execSync } = await import("node:child_process");
+    const { esc, execDb } = await import("../lib/db");
+    const crypto = await import("node:crypto");
     const id = crypto.randomUUID();
-    execSync(`sqlite3 /home/team/.data/agent-team-cc229006.db "INSERT INTO ratings (id, booking_id, rater_type, rater_id, subject_type, subject_id, score, review) VALUES ('${id}', '${data.booking_id}', '${data.rater_type}', '${data.rater_id}', '${data.subject_type}', '${data.subject_id}', ${data.score}, '${data.review.replace(/'/g, "''")}')"`);
+    execDb(`INSERT INTO ratings (id, booking_id, rater_type, rater_id, subject_type, subject_id, score, review) VALUES ('${id}', '${esc(data.booking_id)}', '${esc(data.rater_type)}', '${esc(data.rater_id)}', '${esc(data.subject_type)}', '${esc(data.subject_id)}', ${data.score}, '${esc(data.review)}')`);
     return { success: true };
   });
 

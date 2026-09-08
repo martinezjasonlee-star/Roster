@@ -4,9 +4,21 @@ import * as fs from "node:fs";
 const DB_PATH = "/home/team/.data/agent-team-cc229006.db";
 const LOG_PATH = "/home/team/shared/notification_dispatch.json";
 
+/**
+ * Idempotent schema guard: recreate the notifications table if it is missing
+ * (e.g. after a database reset). Matches the columns written by queueNotification
+ * in src/lib/server.ts and read by the dispatch loop below.
+ */
+function ensureNotificationsTable(): void {
+  execSync(
+    `sqlite3 ${DB_PATH} "CREATE TABLE IF NOT EXISTS notifications (id TEXT PRIMARY KEY, recipient_email TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'pending', created_at TEXT DEFAULT (datetime('now')), sent_at TEXT)"`,
+  );
+}
+
 export function dispatchNotifications(): number {
   try {
     const esc = (s: string) => s.replace(/'/g, "''");
+    ensureNotificationsTable();
 
     // 1. Read all pending notifications (status='pending')
     const pendingRes = execSync(`sqlite3 -json ${DB_PATH} "SELECT id, recipient_email, subject, body, created_at FROM notifications WHERE status = 'pending'"`).toString().trim();

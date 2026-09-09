@@ -68,3 +68,12 @@ setInterval(async () => {
     console.error("Error running background notification dispatch:", error);
   }
 }, 60000);
+// Supervised Cloudflare Tunnel for the custom domain (roster-work.com).
+// bootstrapTunnel is no-throw: missing credentials must never take the site down —
+// it logs the exact owner action needed and returns.
+try {
+  const { bootstrapTunnel } = await import("./scripts/tunnel-launcher.ts");
+  void bootstrapTunnel();
+} catch (error) {
+  console.error("Error starting Cloudflare tunnel supervisor:", error);
+}

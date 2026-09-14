@@ -1,40 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
-import { execSync } from "node:child_process";
 import crypto from "node:crypto";
-
-const DB_PATH = "/home/team/.data/agent-team-cc229006.db";
-
-// Helper to safely execute a SQL SELECT query and return rows as JSON
-function queryDb<T>(sql: string): T[] {
-  try {
-    const escapedSql = sql.replace(/"/g, '\\"');
-    const result = execSync(`sqlite3 -json ${DB_PATH} "${escapedSql}"`);
-    const output = result.toString().trim();
-    if (!output) return [];
-    return JSON.parse(output) as T[];
-  } catch (error) {
-    console.error("Query DB Error:", error, "SQL was:", sql);
-    return [];
-  }
-}
-
-// Helper to safely execute SQL write statements (INSERT, UPDATE, DELETE)
-function execDb(sql: string): { success: boolean } {
-  try {
-    const escapedSql = sql.replace(/"/g, '\\"');
-    execSync(`sqlite3 ${DB_PATH} "${escapedSql}"`);
-    return { success: true };
-  } catch (error) {
-    console.error("Exec DB Error:", error, "SQL was:", sql);
-    return { success: false };
-  }
-}
-
-// Helper to escape single quotes for SQL insertion
-function esc(str: string | undefined | null): string {
-  if (!str) return "";
-  return str.replace(/'/g, "''");
-}
+import { esc, execDb, queryDb } from "./db";
 
 /**
  * 1. getUserByEmail

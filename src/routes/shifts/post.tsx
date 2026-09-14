@@ -6,10 +6,8 @@ import { useState, useEffect } from "react";
 const saveShift = createServerFn({ method: "POST" })
   .validator((data: { form: any; email: string }) => data)
   .handler(async ({ data }) => {
-    const { execSync } = await import("node:child_process");
     const crypto = await import("node:crypto");
-    const DB_PATH = "/home/team/.data/agent-team-cc229006.db";
-    const esc = (s: string) => s.replace(/'/g, "''");
+    const { esc, execDb, queryDb, num } = await import("../../lib/db");
 
     const id = crypto.randomUUID();
 
@@ -18,8 +16,7 @@ const saveShift = createServerFn({ method: "POST" })
       let bizId = "demo-business";
       let bizName = "Roster Venue";
       if (data.email) {
-        const bizRes = execSync(`sqlite3 -json ${DB_PATH} "SELECT id, name FROM businesses WHERE email = '${esc(data.email)}' LIMIT 1"`).toString().trim();
-        const businesses = JSON.parse(bizRes || "[]");
+        const businesses = queryDb<any>(`SELECT id, name FROM businesses WHERE email = '${esc(data.email)}' LIMIT 1`);
         if (businesses.length > 0) {
           bizId = businesses[0].id;
           bizName = businesses[0].name;
@@ -29,7 +26,7 @@ const saveShift = createServerFn({ method: "POST" })
       const locName = data.form.location_name || bizName;
 
       // Insert shift
-      execSync(`sqlite3 ${DB_PATH} "INSERT INTO shifts (id, business_id, role_type, status, shift_type, date, start_time, end_time, workers_needed, hourly_rate, tips_included, pay_type, dress_code, certifications_required, notes, location_name) VALUES ('${id}', '${bizId}', '${esc(data.form.role_type)}', 'open', '${esc(data.form.shift_type)}', '${esc(data.form.date)}', '${esc(data.form.start_time)}', '${esc(data.form.end_time)}', ${Number(data.form.workers_needed)}, ${Number(data.form.hourly_rate)}, 1, 'hourly_plus_tips', '${esc(data.form.dress_code)}', '${esc(data.form.certs_required || "")}', '${esc(data.form.notes || "")}', '${esc(locName)}')"`);
+      execDb(`INSERT INTO shifts (id, business_id, role_type, status, shift_type, date, start_time, end_time, workers_needed, hourly_rate, tips_included, pay_type, dress_code, certifications_required, notes, location_name) VALUES ('${id}', '${bizId}', '${esc(data.form.role_type)}', 'open', '${esc(data.form.shift_type)}', '${esc(data.form.date)}', '${esc(data.form.start_time)}', '${esc(data.form.end_time)}', ${num(data.form.workers_needed)}, ${num(data.form.hourly_rate)}, 1, 'hourly_plus_tips', '${esc(data.form.dress_code)}', '${esc(data.form.certs_required || "")}', '${esc(data.form.notes || "")}', '${esc(locName)}')`);
 
       // Find matching workers to notify
       const targetRole = data.form.role_type;
@@ -39,8 +36,7 @@ const saveShift = createServerFn({ method: "POST" })
       } else if (targetRole === "server") {
         queryRole = "SELECT email, first_name FROM workers WHERE role_type = 'server' OR role_type = 'both'";
       }
-      const workersRes = execSync(`sqlite3 -json ${DB_PATH} "${queryRole}"`).toString().trim();
-      const workersToNotify = JSON.parse(workersRes || "[]");
+      const workersToNotify = queryDb<any>(queryRole);
 
       const roleName = targetRole.charAt(0).toUpperCase() + targetRole.slice(1).replace(/_/g, " ");
 
@@ -51,7 +47,7 @@ const saveShift = createServerFn({ method: "POST" })
           const subject = `New shift: ${roleName} shift posted at ${locName}`;
           const body = `Hi ${w.first_name || "there"},\n\nA new ${roleName} shift is available on Roster!\n\nShift Details:\n- Role: ${roleName}\n- Date: ${data.form.date}\n- Hours: ${data.form.start_time} - ${data.form.end_time}\n- Rate: ${data.form.hourly_rate}/hr\n- Venue: ${locName}\n\nApply now to claim the shift: https://roster-work.com/shifts/browse\n\nBest,\nThe Roster Team`;
           
-          execSync(`sqlite3 ${DB_PATH} "INSERT INTO notifications (id, recipient_email, subject, body, status) VALUES ('${notifId}', '${esc(w.email)}', '${esc(subject)}', '${esc(body)}', 'pending')"`);
+          execDb(`INSERT INTO notifications (id, recipient_email, subject, body, status) VALUES ('${notifId}', '${esc(w.email)}', '${esc(subject)}', '${esc(body)}', 'pending')`);
         }
       }
 

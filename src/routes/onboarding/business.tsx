@@ -2,10 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { useState, useEffect } from "react";
-import { execSync } from "node:child_process";
 import crypto from "node:crypto";
-
-const DB_PATH = "/home/team/.data/agent-team-cc229006.db";
+import { esc, execDb } from "../../lib/db";
 
 const saveBusiness = createServerFn({ method: "POST" })
   .validator((data: {
@@ -21,9 +19,8 @@ const saveBusiness = createServerFn({ method: "POST" })
   }) => data)
   .handler(async ({ data }) => {
     const id = crypto.randomUUID();
-    const esc = (s: string) => s.replace(/'/g, "''");
 
-    execSync(`sqlite3 ${DB_PATH} "INSERT INTO businesses (id, name, email, phone, venue_type, description, address, city, state, membership_tier, membership_status, photo_url) VALUES ('${id}', '${esc(data.name)}', '${esc(data.email)}', '${esc(data.phone)}', '${esc(data.venue_type)}', '${esc(data.description)}', '${esc(data.address)}', '${esc(data.city)}', 'CO', '${esc(data.plan)}', 'trial', '${esc(data.photo_url)}')"`);
+    execDb(`INSERT INTO businesses (id, name, email, phone, venue_type, description, address, city, state, membership_tier, membership_status, photo_url) VALUES ('${id}', '${esc(data.name)}', '${esc(data.email)}', '${esc(data.phone)}', '${esc(data.venue_type)}', '${esc(data.description)}', '${esc(data.address)}', '${esc(data.city)}', 'CO', '${esc(data.plan)}', 'trial', '${esc(data.photo_url)}')`);
 
     return { success: true, businessId: id };
   });

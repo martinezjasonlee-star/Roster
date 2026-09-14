@@ -7,7 +7,7 @@ const saveShift = createServerFn({ method: "POST" })
   .validator((data: { form: any; email: string }) => data)
   .handler(async ({ data }) => {
     const crypto = await import("node:crypto");
-    const { esc, execDb, queryDb } = await import("../../lib/db");
+    const { esc, execDb, queryDb, num } = await import("../../lib/db");
 
     const id = crypto.randomUUID();
 
@@ -26,7 +26,7 @@ const saveShift = createServerFn({ method: "POST" })
       const locName = data.form.location_name || bizName;
 
       // Insert shift
-      execDb(`INSERT INTO shifts (id, business_id, role_type, status, shift_type, date, start_time, end_time, workers_needed, hourly_rate, tips_included, pay_type, dress_code, certifications_required, notes, location_name) VALUES ('${id}', '${bizId}', '${esc(data.form.role_type)}', 'open', '${esc(data.form.shift_type)}', '${esc(data.form.date)}', '${esc(data.form.start_time)}', '${esc(data.form.end_time)}', ${Number(data.form.workers_needed)}, ${Number(data.form.hourly_rate)}, 1, 'hourly_plus_tips', '${esc(data.form.dress_code)}', '${esc(data.form.certs_required || "")}', '${esc(data.form.notes || "")}', '${esc(locName)}')`);
+      execDb(`INSERT INTO shifts (id, business_id, role_type, status, shift_type, date, start_time, end_time, workers_needed, hourly_rate, tips_included, pay_type, dress_code, certifications_required, notes, location_name) VALUES ('${id}', '${bizId}', '${esc(data.form.role_type)}', 'open', '${esc(data.form.shift_type)}', '${esc(data.form.date)}', '${esc(data.form.start_time)}', '${esc(data.form.end_time)}', ${num(data.form.workers_needed)}, ${num(data.form.hourly_rate)}, 1, 'hourly_plus_tips', '${esc(data.form.dress_code)}', '${esc(data.form.certs_required || "")}', '${esc(data.form.notes || "")}', '${esc(locName)}')`);
 
       // Find matching workers to notify
       const targetRole = data.form.role_type;

@@ -1,76 +1,63 @@
-import { execSync } from "node:child_process";
+import crypto from "node:crypto";
 import * as fs from "node:fs";
+import { esc, execDb, queryDb } from "../src/lib/db.ts";
 
 /**
- * Email notification dispatcher — real delivery pipeline.
+ * Email notification dispatcher — real delivery with atomic claim/lease.
  *
- * Reads queued notifications (status='pending') from the `notifications` table
- * and delivers each one to a transactional email provider over HTTPS
- * (Resend-compatible API). A notification is only marked status='sent' after
- * the provider returns a 2xx (delivery handoff succeeded). Failures are
- * recorded per-row (attempts, last_error, next_attempt_at) and retried with
- * exponential backoff; after MAX_ATTEMPTS the row becomes status='failed' and
- * is written to /home/team/shared/notification_failures.json so nothing is
- * silently lost.
+ * Delivery pipeline:
+ *   1. ATOMIC CLAIM — one batched UPDATE claims every eligible row for THIS
+ *      pass under a fresh `claim_token` + `lease_expires_at`. Eligibility:
+ *      status='pending', due (next_attempt_at <= now), and NOT held by an
+ *      active lease. SQLite serializes the UPDATE, so two concurrent passes
+ *      can never both claim the same row: the second pass's UPDATE matches
+ *      zero rows for that row (its lease is active), so it never delivers it.
+ *   2. DELIVER — each row we own is handed to the transactional provider over
+ *      HTTPS. The row is marked status='sent' ONLY after a 2xx handoff.
+ *   3. FINALIZE — success: sent + sent_at (token-scoped UPDATE so only the
+ *      owner can finalize). Failure: attempts/error/backoff, or permanent
+ *      'failed' + /home/team/shared/notification_failures.json after
+ *      MAX_ATTEMPTS — nothing is silently lost.
+ *   4. STALE-LEASE RECOVERY — if a pass dies mid-delivery its lease expires
+ *      (lease_expires_at in the past) and the next pass re-claims the row.
  *
  * Provider contract (env):
- *   RESEND_API_KEY  — required. Provider API key (Bearer auth). Without it the
- *                     dispatcher records the failure and leaves rows pending —
- *                     notifications are NEVER marked sent without a real handoff.
- *   RESEND_API_URL  — optional. Base URL, default https://api.resend.com. Tests
- *                     point this at a local mock to exercise the success path.
- *   DISPATCH_FROM   — optional sender address. Must be a verified sender in the
- *                     provider account (default "Roster <no-reply@roster-work.com>").
+ *   RESEND_API_KEY  — required for delivery (Bearer token). Without it rows
+ *                     are retried and NEVER marked sent.
+ *   RESEND_API_URL  — optional base URL (default https://api.resend.com).
+ *   DISPATCH_FROM   — optional verified sender address.
  *
- * Idempotency: eligible rows are only those still status='pending' with
- * next_attempt_at <= now; the sent/failed transitions use
- * `UPDATE ... WHERE status='pending'`, so a row can never be double-delivered
- * or double-marked, even if two runs race.
+ * All DB access goes through the no-shell shared layer in src/lib/db.ts
+ * (execFileSync + argument arrays — no shell metacharacter interpretation).
  */
 
-const DB_PATH = "/home/team/.data/agent-team-cc229006.db";
 const AUDIT_LOG = "/home/team/shared/notification_dispatch.json";
 const FAILURE_LOG = "/home/team/shared/notification_failures.json";
 
 const MAX_ATTEMPTS = 5;
-const BATCH_LIMIT = 50;
-/** Cap the backoff at 60 minutes (attempt 1→2 min, 2→4, 3→8, 4→16, 5→32 … capped). */
+/** Rows owned per pass (bounded work; unprocessed claims release via lease). */
+const BATCH_LIMIT = 100;
+/** Lease lifetime; after this a crashed pass's claim is reclaimable. */
+const LEASE_MS = 120_000;
+/** Backoff cap: 2^attempts minutes, capped at this. */
 const BACKOFF_CAP_MINUTES = 60;
 
-function esc(value: string | number | null | undefined): string {
-  if (value === null || value === undefined) return "";
-  return String(value).replace(/'/g, "''");
-}
-
-function query<T = Record<string, unknown>>(sql: string): T[] {
-  try {
-    const out = execSync(`sqlite3 -json ${DB_PATH} "${sql.replace(/"/g, '\\"')}"`).toString().trim();
-    if (!out) return [];
-    const parsed: unknown = JSON.parse(out);
-    return Array.isArray(parsed) ? (parsed as T[]) : [];
-  } catch (error) {
-    console.error("dispatch query error:", error, "SQL:", sql);
-    return [];
-  }
-}
-
-function exec(sql: string): boolean {
-  try {
-    execSync(`sqlite3 ${DB_PATH} "${sql.replace(/"/g, '\\"')}"`);
-    return true;
-  } catch (error) {
-    console.error("dispatch exec error:", error, "SQL:", sql);
-    return false;
-  }
+interface OwnedNotification {
+  id: string;
+  recipient_email: string;
+  subject: string;
+  body: string;
+  created_at: string | null;
+  attempts: number;
 }
 
 /**
- * Idempotent schema guard. Creates the table if missing (e.g. after a DB
- * reset) and adds retry/failure columns if this version of the app hasn't
- * migrated them yet. Duplicate-column ALTER errors are ignored.
+ * Idempotent schema guard: creates the table (with claim/lease columns) if
+ * missing and adds any missing columns to an older table (duplicate-column
+ * ALTER errors are swallowed).
  */
 function ensureSchema(): void {
-  exec(
+  execDb(
     `CREATE TABLE IF NOT EXISTS notifications (` +
       `id TEXT PRIMARY KEY, ` +
       `recipient_email TEXT NOT NULL, ` +
@@ -81,25 +68,28 @@ function ensureSchema(): void {
       `sent_at TEXT, ` +
       `attempts INTEGER NOT NULL DEFAULT 0, ` +
       `last_error TEXT, ` +
-      `next_attempt_at TEXT` +
+      `next_attempt_at TEXT, ` +
+      `claim_token TEXT, ` +
+      `lease_expires_at TEXT` +
       `)`,
   );
-  exec(`CREATE INDEX IF NOT EXISTS idx_notifications_pending ON notifications(status, next_attempt_at)`);
-  // ALTERs for databases created before the retry columns existed.
+  execDb(`CREATE INDEX IF NOT EXISTS idx_notifications_pending ON notifications(status, next_attempt_at)`);
+  execDb(
+    `CREATE INDEX IF NOT EXISTS idx_notifications_claim ON notifications(status, claim_token, lease_expires_at)`,
+  );
   for (const col of [
     "attempts INTEGER NOT NULL DEFAULT 0",
     "last_error TEXT",
     "next_attempt_at TEXT",
+    "claim_token TEXT",
+    "lease_expires_at TEXT",
   ]) {
-    try {
-      exec(`ALTER TABLE notifications ADD COLUMN ${col}`);
-    } catch {
-      /* column already exists */
-    }
+    // Swallow "duplicate column" — the column already exists.
+    execDb(`ALTER TABLE notifications ADD COLUMN ${col}`);
   }
 }
 
-function readJsonLog(path: string): any[] {
+function readJsonLog(path: string): unknown[] {
   if (!fs.existsSync(path)) return [];
   try {
     const parsed = JSON.parse(fs.readFileSync(path, "utf-8"));
@@ -115,17 +105,8 @@ function appendLog(path: string, entry: Record<string, unknown>): void {
   fs.writeFileSync(path, JSON.stringify(rows, null, 2), "utf-8");
 }
 
-/**
- * Deliver one email via the provider's HTTP API. Returns { ok: true } only on
- * a 2xx response — i.e. the provider accepted the message for delivery.
- * Anything else (network error, non-2xx, missing key) returns { ok: false, error }.
- */
-async function deliverEmail(notif: {
-  id: string;
-  recipient_email: string;
-  subject: string;
-  body: string;
-}): Promise<{ ok: boolean; error?: string }> {
+/** Deliver one email; ok:true only on a 2xx provider response (handoff). */
+async function deliverEmail(notif: OwnedNotification): Promise<{ ok: boolean; error?: string }> {
   const key = process.env.RESEND_API_KEY;
   if (!key) {
     return {
@@ -138,16 +119,8 @@ async function deliverEmail(notif: {
   try {
     const res = await fetch(`${baseUrl}/emails`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${key}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from,
-        to: [notif.recipient_email],
-        subject: notif.subject,
-        text: notif.body,
-      }),
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ from, to: [notif.recipient_email], subject: notif.subject, text: notif.body }),
     });
     if (res.ok) return { ok: true };
     const detail = (await res.text()).slice(0, 300);
@@ -157,72 +130,15 @@ async function deliverEmail(notif: {
   }
 }
 
-/**
- * Run one dispatch pass. Returns the number of emails handed off to the
- * provider successfully in this pass. Never throws.
- */
-export async function dispatchNotifications(): Promise<number> {
-  try {
-    ensureSchema();
-    const now = new Date();
-    const nowIso = now.toISOString();
-
-    const pending = query<{
-      id: string;
-      recipient_email: string;
-      subject: string;
-      body: string;
-      created_at: string | null;
-      attempts: number;
-    }>(
-      `SELECT id, recipient_email, subject, body, created_at, attempts FROM notifications ` +
-        `WHERE status = 'pending' AND (next_attempt_at IS NULL OR next_attempt_at <= '${esc(nowIso)}') ` +
-        `ORDER BY created_at ASC LIMIT ${BATCH_LIMIT}`,
-    );
-
-    let dispatched = 0;
-    for (const notif of pending) {
-      const result = await deliverEmail(notif);
-      if (result.ok) {
-        // Handoff succeeded → now (and only now) mark sent.
-        exec(
-          `UPDATE notifications SET status = 'sent', sent_at = '${esc(nowIso)}', ` +
-            `attempts = attempts + 1, last_error = NULL WHERE id = '${esc(notif.id)}' AND status = 'pending'`,
-        );
-        appendLog(AUDIT_LOG, {
-          id: notif.id,
-          recipient_email: notif.recipient_email,
-          subject: notif.subject,
-          body: notif.body,
-          created_at: notif.created_at,
-          dispatched_at: nowIso,
-        });
-        dispatched++;
-      } else {
-        recordFailure(notif, result.error || "unknown delivery error", nowIso);
-      }
-    }
-
-    console.log(`Dispatched ${dispatched} notifications`);
-    return dispatched;
-  } catch (error) {
-    console.error("Notification dispatch failed:", error);
-    return 0;
-  }
-}
-
-/** Record a failed attempt: increment, back off, or mark permanently failed. */
-function recordFailure(
-  notif: { id: string; attempts: number },
-  error: string,
-  nowIso: string,
-): void {
-  const attempts = (notif.attempts || 0) + 1;
-  const errorSql = esc(error.slice(0, 500));
+/** Failure finalize: backoff + retry, or permanent 'failed' + failure log. */
+function finalizeFailure(notif: OwnedNotification, claimToken: string, error: string, nowIso: string): void {
+  const attempts = notif.attempts; // incremented at claim time
+  const errSql = esc(error.slice(0, 500));
   if (attempts >= MAX_ATTEMPTS) {
-    exec(
-      `UPDATE notifications SET status = 'failed', attempts = ${attempts}, ` +
-        `last_error = '${errorSql}', next_attempt_at = NULL WHERE id = '${esc(notif.id)}' AND status = 'pending'`,
+    execDb(
+      `UPDATE notifications SET status='failed', attempts=${attempts}, last_error='${errSql}', ` +
+        `next_attempt_at=NULL, claim_token=NULL, lease_expires_at=NULL ` +
+        `WHERE id='${esc(notif.id)}' AND claim_token='${esc(claimToken)}'`,
     );
     appendLog(FAILURE_LOG, {
       id: notif.id,
@@ -235,10 +151,68 @@ function recordFailure(
   } else {
     const backoffMin = Math.min(2 ** attempts, BACKOFF_CAP_MINUTES);
     const next = new Date(new Date(nowIso).getTime() + backoffMin * 60_000).toISOString();
-    exec(
-      `UPDATE notifications SET attempts = ${attempts}, last_error = '${errorSql}', ` +
-        `next_attempt_at = '${esc(next)}' WHERE id = '${esc(notif.id)}' AND status = 'pending'`,
+    execDb(
+      `UPDATE notifications SET attempts=${attempts}, last_error='${errSql}', next_attempt_at='${esc(next)}', ` +
+        `claim_token=NULL, lease_expires_at=NULL ` +
+        `WHERE id='${esc(notif.id)}' AND claim_token='${esc(claimToken)}'`,
     );
+  }
+}
+
+/** Run one dispatch pass; returns the number of successful handoffs. Never throws. */
+export async function dispatchNotifications(): Promise<number> {
+  try {
+    ensureSchema();
+    const now = new Date();
+    const nowIso = now.toISOString();
+    const claimToken = crypto.randomUUID();
+    const leaseExp = new Date(now.getTime() + LEASE_MS).toISOString();
+
+    // 1. Atomic batch claim: only pending, due, lease-free rows. SQLite's write
+    //    lock serializes this UPDATE, so concurrent passes cannot double-claim.
+    execDb(
+      `UPDATE notifications SET claim_token='${esc(claimToken)}', lease_expires_at='${esc(leaseExp)}', attempts=attempts+1 ` +
+        `WHERE status='pending' ` +
+        `AND (next_attempt_at IS NULL OR next_attempt_at <= '${esc(nowIso)}') ` +
+        `AND (claim_token IS NULL OR lease_expires_at IS NULL OR lease_expires_at < '${esc(nowIso)}')`,
+    );
+
+    // 2. The rows carrying OUR token are the ones we exclusively own.
+    const owned = queryDb<OwnedNotification>(
+      `SELECT id, recipient_email, subject, body, created_at, attempts FROM notifications ` +
+        `WHERE claim_token='${esc(claimToken)}' LIMIT ${BATCH_LIMIT}`,
+    );
+
+    let dispatched = 0;
+    for (const notif of owned) {
+      const result = await deliverEmail(notif);
+      if (result.ok) {
+        // 3a. Sent ONLY after a successful provider handoff; token-scoped so only we can finalize.
+        execDb(
+          `UPDATE notifications SET status='sent', sent_at='${esc(nowIso)}', last_error=NULL, ` +
+            `claim_token=NULL, lease_expires_at=NULL ` +
+            `WHERE id='${esc(notif.id)}' AND claim_token='${esc(claimToken)}'`,
+        );
+        appendLog(AUDIT_LOG, {
+          id: notif.id,
+          recipient_email: notif.recipient_email,
+          subject: notif.subject,
+          body: notif.body,
+          created_at: notif.created_at,
+          dispatched_at: nowIso,
+        });
+        dispatched++;
+      } else {
+        // 3b. Failure: backoff + retry (or permanent failed + failure log).
+        finalizeFailure(notif, claimToken, result.error || "unknown delivery error", nowIso);
+      }
+    }
+
+    console.log(`Dispatched ${dispatched} notifications`);
+    return dispatched;
+  } catch (error) {
+    console.error("Notification dispatch failed:", error);
+    return 0;
   }
 }
 

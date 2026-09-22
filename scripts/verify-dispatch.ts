@@ -1,12 +1,14 @@
-// End-to-end verification of the email dispatch pipeline (v2: lease/claim).
+// End-to-end verification of the email dispatch pipeline (v2: lease/claim, bounded batch).
 // (run: bun scripts/verify-dispatch.ts) — uses a LOCAL mock provider, never sends real mail.
 // Covers: success handoff, idempotency, no-key safety, backoff, 5xx, exhaustion,
-// stale-lease recovery, active-lease skip, CONCURRENT exactly-one-send, and
-// adversarial shell-metachar content handled safely.
+// stale-lease recovery, active-lease skip, CONCURRENT exactly-one-send,
+// BATCH_LIMIT bounding (125 due rows → exactly 100 claimed/delivered per pass,
+// remainder stays lease-free and eligible), and adversarial shell-metachar content
+// handled safely.
 import crypto from "node:crypto";
 import * as fs from "node:fs";
 import { execDb, queryDb, esc } from "../src/lib/db.ts";
-import { dispatchNotifications } from "./dispatch-notifications.ts";
+import { dispatchNotifications, BATCH_LIMIT } from "./dispatch-notifications.ts";
 
 const AUDIT_LOG = "/home/team/shared/notification_dispatch.json";
 const FAILURE_LOG = "/home/team/shared/notification_failures.json";
@@ -65,8 +67,9 @@ function check(name: string, cond: boolean, detail?: unknown): void {
 try {
   fs.rmSync(MARKER, { force: true });
   resetLogs();
-  // Remove leftovers from prior runs and ensure schema (table + claim/lease columns).
-  execDb(`DELETE FROM notifications WHERE id LIKE 'verify-%'`);
+  // Remove leftovers from prior runs (verify-* + db-missile-* adversarial rows from
+  // the hardened-DB suite) and ensure schema (table + claim/lease columns).
+  execDb(`DELETE FROM notifications WHERE id LIKE 'verify-%' OR id LIKE 'db-missile-%'`);
   await dispatchNotifications();
 
   process.env.RESEND_API_KEY = "test-key";
@@ -171,6 +174,41 @@ try {
   check("adversarial: no shell execution ($()/backticks inert)", !fs.existsSync(MARKER) && !fs.existsSync(MARKER + "2"));
   const tableAlive = queryDb<{ count: number }>("SELECT COUNT(*) as count FROM notifications");
   check("adversarial: table intact", tableAlive[0]?.count !== undefined);
+
+  // ---- 10. BATCH LIMIT: only BATCH_LIMIT rows claimed/delivered per pass ----
+  const extra = 25;
+  const batchTotal = BATCH_LIMIT + extra; // 125
+  const batchIds: string[] = [];
+  // Seed BATCH_LIMIT+extra DUE rows in one statement (fast), all mock@example.com.
+  {
+    const valueTuples: string[] = [];
+    for (let i = 0; i < batchTotal; i++) {
+      const id = "verify-bat-" + i + "-" + crypto.randomUUID().slice(0, 8);
+      batchIds.push(id);
+      valueTuples.push(`('${id}', 'mock@example.com', 'Batch #${i}', 'Body', 'pending', 0)`);
+    }
+    execDb(`INSERT INTO notifications (id, recipient_email, subject, body, status, attempts) VALUES ${valueTuples.join(",")}`);
+  }
+  received = [];
+  mockMode = "ok";
+  mockDelayMs = 0;
+  const n10 = await dispatchNotifications();
+  const delivered10 = received.filter((r: any) => r.to?.[0] === "mock@example.com").length;
+  check("batch-limit: exactly BATCH_LIMIT dispatched in one pass", n10 === BATCH_LIMIT, { n10, limit: BATCH_LIMIT, seeded: batchTotal });
+  check("batch-limit: provider saw exactly BATCH_LIMIT requests", delivered10 === BATCH_LIMIT, delivered10);
+  const sentCount = queryDb<{ c: number }>(`SELECT COUNT(*) AS c FROM notifications WHERE status='sent' AND id LIKE 'verify-bat-%'`)[0]?.c as number;
+  check("batch-limit: exactly BATCH_LIMIT rows marked sent", sentCount === BATCH_LIMIT, sentCount);
+  const leaseHeld = queryDb<{ c: number }>(`SELECT COUNT(*) AS c FROM notifications WHERE status='pending' AND id LIKE 'verify-bat-%' AND (claim_token IS NOT NULL OR lease_expires_at IS NOT NULL)`)[0]?.c as number;
+  check("batch-limit: no leftover rows hidden behind a lease", leaseHeld === 0, leaseHeld);
+  const stillPending = queryDb<{ c: number }>(`SELECT COUNT(*) AS c FROM notifications WHERE status='pending' AND id LIKE 'verify-bat-%'`)[0]?.c as number;
+  check("batch-limit: remainder still pending + immediately eligible", stillPending === extra, stillPending);
+  // A second pass delivers the remaining `extra` rows → proves they weren't blocked.
+  received = [];
+  const n10b = await dispatchNotifications();
+  const delivered10b = received.filter((r: any) => r.to?.[0] === "mock@example.com").length;
+  check("batch-limit: next pass delivers the remainder", n10b === extra, { n10b, extra });
+  check("batch-limit: remainder handoff count", delivered10b === extra, delivered10b);
+  cleanUp(batchIds);
 
   cleanUp([okId, noKeyId, failId, deadId, staleId, activeId, concId, advId]);
   console.log(`\n${pass} passed, ${fail} failed`);

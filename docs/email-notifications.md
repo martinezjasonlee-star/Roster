@@ -34,8 +34,8 @@ through a real provider handoff. This document is the operating contract.
 - `ensureSchema()` creates the table/columns idempotently (self-heals DB resets).
 
 ## Testing
-- `bun scripts/verify-dispatch.ts` — 19-check end-to-end suite against a local mock
-  provider (never sends real mail). Expected: `19/19 checks passed`.
+- `bun scripts/verify-dispatch.ts` — 38-check end-to-end suite against a local mock
+  provider (never sends real mail). Expected: `38/38 checks passed`.
 
 ## What to do if deliveries stall
 1. `sqlite3 /home/team/.data/agent-team-cc229006.db "SELECT status, COUNT(*) FROM notifications GROUP BY status"`
@@ -45,13 +45,22 @@ through a real provider handoff. This document is the operating contract.
    `last_error` on each pending row.
 ## Exactly-once delivery (lease/claim) — revision notes
 
-Every dispatch pass runs an atomic batch claim before delivering:
+Every dispatch pass runs an atomic **bounded** claim before delivering:
 
 1. `UPDATE notifications SET claim_token=<fresh>, lease_expires_at=<now+120s>, attempts=attempts+1
-   WHERE status='pending' AND (next_attempt_at IS NULL OR next_attempt_at<=now)
-   AND (claim_token IS NULL OR lease_expires_at IS NULL OR lease_expires_at < now)`
-   SQLite serializes the UPDATE, so two concurrent passes can never both claim a row:
-   the loser's UPDATE matches zero rows and it only delivers rows carrying ITS token.
+   WHERE id IN (
+     SELECT id FROM notifications WHERE status='pending'
+       AND (next_attempt_at IS NULL OR next_attempt_at<=now)
+       AND (claim_token IS NULL OR lease_expires_at IS NULL OR lease_expires_at < now)
+     LIMIT BATCH_LIMIT
+   )`
+   Two guarantees come from one statement: (a) **atomicity** — SQLite serializes the
+   write, so two concurrent passes can never both claim a row; the loser's UPDATE
+   matches zero rows and it only delivers rows carrying ITS token. (b) **bounded
+   work** — the id-listing subquery limits the claim to `BATCH_LIMIT` (100) rows, so
+   a pass never stashes more rows behind leases than it will actually process.
+   Rows beyond the limit keep `claim_token=NULL`/`lease_expires_at=NULL` and stay
+   immediately eligible for the next pass.
 2. Delivery happens only for rows the pass owns (read-back by claim_token).
 3. `status='sent'` is written only after a 2xx provider handoff, and only with the
    owner's token in the WHERE clause — a second pass cannot finalize someone else's row.
@@ -60,6 +69,8 @@ Every dispatch pass runs an atomic batch claim before delivering:
    delivery still counts toward the retry budget (5 attempts → 'failed' + failures log).
 
 No shell is used anywhere: all DB access goes through src/lib/db.ts (execFileSync argv
-arrays). `scripts/verify-dispatch.ts` proves 31 behaviors end-to-end against a local mock
+arrays). `scripts/verify-dispatch.ts` proves 38 behaviors end-to-end against a local mock
 provider, including the concurrent exactly-one-send test (three overlapping passes on one
-row → exactly one provider handoff).
+row → exactly one provider handoff) and the batch-limit test (125 due rows → one pass
+claims/delivers exactly 100, the remaining 25 stay pending with no lease and are delivered
+by the next pass).

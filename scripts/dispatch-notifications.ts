@@ -35,8 +35,8 @@ const AUDIT_LOG = "/home/team/shared/notification_dispatch.json";
 const FAILURE_LOG = "/home/team/shared/notification_failures.json";
 
 const MAX_ATTEMPTS = 5;
-/** Rows owned per pass (bounded work; unprocessed claims release via lease). */
-const BATCH_LIMIT = 100;
+/** Rows owned per pass (bounded work; claim never exceeds this limit). */
+export const BATCH_LIMIT = 100;
 /** Lease lifetime; after this a crashed pass's claim is reclaimable. */
 const LEASE_MS = 120_000;
 /** Backoff cap: 2^attempts minutes, capped at this. */
@@ -168,13 +168,19 @@ export async function dispatchNotifications(): Promise<number> {
     const claimToken = crypto.randomUUID();
     const leaseExp = new Date(now.getTime() + LEASE_MS).toISOString();
 
-    // 1. Atomic batch claim: only pending, due, lease-free rows. SQLite's write
-    //    lock serializes this UPDATE, so concurrent passes cannot double-claim.
+    // 1. Atomic bounded claim: claim at most BATCH_LIMIT eligible rows in one
+    //    UPDATE. The id-listing subquery re-applies every eligibility/lease
+    //    condition and limits to BATCH_LIMIT, so a pass can never stash more
+    //    rows behind leases than it will process. SQLite serializes the write,
+    //    so a concurrent pass's claim sees our active lease and excludes them.
     execDb(
       `UPDATE notifications SET claim_token='${esc(claimToken)}', lease_expires_at='${esc(leaseExp)}', attempts=attempts+1 ` +
-        `WHERE status='pending' ` +
+        `WHERE id IN (` +
+        `SELECT id FROM notifications WHERE status='pending' ` +
         `AND (next_attempt_at IS NULL OR next_attempt_at <= '${esc(nowIso)}') ` +
-        `AND (claim_token IS NULL OR lease_expires_at IS NULL OR lease_expires_at < '${esc(nowIso)}')`,
+        `AND (claim_token IS NULL OR lease_expires_at IS NULL OR lease_expires_at < '${esc(nowIso)}') ` +
+        `LIMIT ${BATCH_LIMIT}` +
+        `)`,
     );
 
     // 2. The rows carrying OUR token are the ones we exclusively own.

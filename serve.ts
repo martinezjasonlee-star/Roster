@@ -63,7 +63,7 @@ console.log(`team-site serving on http://${HOST}:${String(PORT)}`);
 setInterval(async () => {
   try {
     const { dispatchNotifications } = await import("./scripts/dispatch-notifications.ts");
-    dispatchNotifications();
+    await dispatchNotifications();
   } catch (error) {
     console.error("Error running background notification dispatch:", error);
   }

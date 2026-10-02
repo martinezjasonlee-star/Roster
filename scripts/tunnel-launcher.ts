@@ -7,19 +7,22 @@ import * as path from "node:path";
  * Supervised Cloudflare Tunnel launcher for roster-work.com.
  *
  * Why this exists: the custom domain is served through a Cloudflare Tunnel
- * (named tunnel, ID in /home/team/shared/config.yml). Historically the
- * `cloudflared` process was started by hand and its credentials lived in
- * /root/.cloudflared/credentials.json — both of which disappear when the
- * sandbox environment is replaced, leaving the Cloudflare edge unable to
- * reach the origin (Error 1033 / HTTP 530).
+ * (named tunnel). Historically the `cloudflared` process was started by hand
+ * and its credentials lived in /root/.cloudflared/credentials.json — both of
+ * which disappear when the sandbox environment is replaced, leaving the
+ * Cloudflare edge unable to reach the origin (Error 1033 / HTTP 530).
  *
  * This module makes the tunnel durable:
- *   1. Credentials are discovered in BOTH the legacy /root/.cloudflared path
- *      and the team-owned /home/team/shared/.cloudflared path, and any copy
- *      found is persisted to the shared path so it survives environment
- *      replacement.
- *   2. A config is generated that points `credentials-file` at the persisted
- *      copy — no dependency on /root state.
+ *   1. The tunnel token is discovered from (in order) CLOUDFLARE_TUNNEL_TOKEN,
+ *      the `api_key` env var (the owner's secret lands there as the full
+ *      `cloudflared.exe service install <token>` one-liner Cloudflare prints),
+ *      and the team-owned persisted copy. Any value found is normalized to the
+ *      bare token and persisted to /home/team/shared/.cloudflared/tunnel-token
+ *      so it survives environment replacement.
+ *   2. Credentials-file mode (legacy `credentials.json` + generated config.yml)
+ *      is kept as a fallback for locally-managed tunnels, but the token path is
+ *      primary and needs no config file — a token-bound tunnel uses the
+ *      remotely-managed ingress config Cloudflare serves from the dashboard.
  *   3. The cloudflared process runs supervised: on unexpected exit it is
  *      restarted with backoff, connection state is detected from its logs,
  *      and verifiable health checks (origin :3000 + public roster-work.com)
@@ -28,7 +31,7 @@ import * as path from "node:path";
  * `bootstrapTunnel()` is called from serve.ts at production startup and is
  * deliberately no-throw: a missing tunnel must never take the site down.
  * If no token and no credentials exist, it logs the exact one-time action
- * the owner needs to take (provide CLOUDFLARE_TUNNEL_TOKEN or drop the
+ * the owner needs to take (provide the tunnel token as a secret or drop
  * credentials.json in the shared path) and returns cleanly.
  */
 
@@ -38,6 +41,9 @@ const CLOUDFLARED_PATH = path.join(BIN_DIR, "cloudflared");
 const PERSISTENT_CF_DIR = path.join(SHARED_DIR, ".cloudflared");
 const PERSISTENT_CREDENTIALS = path.join(PERSISTENT_CF_DIR, "credentials.json");
 const LEGACY_CREDENTIALS = "/root/.cloudflared/credentials.json";
+/** Team-owned copy of the tunnel token, written when a token is discovered so a
+ *  later environment replacement does not lose the only authentication source. */
+const PERSISTED_TOKEN = path.join(PERSISTENT_CF_DIR, "tunnel-token");
 /** Source of truth for the tunnel identity (ID or name line of config.yml). */
 const SOURCE_CONFIG = path.join(SHARED_DIR, "config.yml");
 /** Generated config that always points credentials-file at the persisted copy. */
@@ -86,12 +92,54 @@ async function ensureCloudflaredInstalled(): Promise<boolean> {
 }
 
 /**
- * Returns the preferred authentication source: "token" when
- * CLOUDFLARE_TUNNEL_TOKEN is set, otherwise the path of an existing
- * credentials.json (persistent team path first, legacy /root path second).
+ * Normalize a Cloudflare tunnel token. The owner's saved secret often arrives
+ * as the exact one-liner Cloudflare prints ("cloudflared.exe service install
+ * <token>"), so strip that prefix when present and return the bare token.
+ */
+export function normalizeToken(raw: string | undefined | null): string | null {
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  const m = trimmed.match(/^(?:cloudflared(?:\.exe)?\s+service\s+install\s+)?(.+)$/);
+  return m ? m[1].trim() : null;
+}
+
+/** Discover the tunnel token: explicit env, then the api_key env var (where the
+ *  owner's secret lands), then the team-owned persisted copy. */
+export function resolveToken(): string | null {
+  for (const src of [process.env.CLOUDFLARE_TUNNEL_TOKEN, process.env.api_key]) {
+    const token = normalizeToken(src);
+    if (token) return token;
+  }
+  try {
+    if (fs.existsSync(PERSISTED_TOKEN)) {
+      const token = normalizeToken(fs.readFileSync(PERSISTED_TOKEN, "utf-8"));
+      if (token) return token;
+    }
+  } catch {
+    /* best-effort */
+  }
+  return null;
+}
+
+/** Persist a discovered token to the team-owned path so it survives restarts. */
+export function persistToken(token: string): void {
+  try {
+    fs.mkdirSync(PERSISTENT_CF_DIR, { recursive: true });
+    fs.writeFileSync(PERSISTED_TOKEN, `${token}\n`, { mode: 0o600 });
+    log(`Tunnel token persisted to ${PERSISTED_TOKEN}.`);
+  } catch (error) {
+    log(`Could not persist tunnel token: ${(error as Error).message}`);
+  }
+}
+
+/**
+ * Returns the preferred authentication source: "token" when a token is
+ * discoverable, otherwise the path of an existing credentials.json (persistent
+ * team path first, legacy /root path second).
  */
 export function resolveCredentials(): string | null {
-  if (process.env.CLOUDFLARE_TUNNEL_TOKEN) return "token";
+  if (resolveToken()) return "token";
   for (const p of [PERSISTENT_CREDENTIALS, LEGACY_CREDENTIALS]) {
     if (fs.existsSync(p)) return p;
   }
@@ -204,24 +252,29 @@ function startHealthMonitor(): void {
 }
 
 export function startTunnelSupervisor(): void {
-  const cred = resolveCredentials();
+  const token = resolveToken();
+  const cred = token ? "token" : resolveCredentials();
   if (!cred) {
     log(
-      "Cannot start Cloudflare Tunnel: neither CLOUDFLARE_TUNNEL_TOKEN nor credentials.json " +
+      "Cannot start Cloudflare Tunnel: no tunnel token (CLOUDFLARE_TUNNEL_TOKEN/api_key) " +
+        "and no credentials.json " +
         `(checked ${PERSISTENT_CREDENTIALS} and ${LEGACY_CREDENTIALS}) is present. ` +
         "The custom domain roster-work.com will keep returning Cloudflare 530/1033 until one is provided. " +
-        "One-time fix: set CLOUDFLARE_TUNNEL_TOKEN or place the tunnel's credentials.json at " +
+        "One-time fix: save the tunnel token as a business secret, or place credentials.json at " +
         `${PERSISTENT_CREDENTIALS}.`,
     );
     return;
   }
-  if (!ensureGeneratedConfig()) return;
 
   let args: string[];
   if (cred === "token") {
-    log("Running tunnel with CLOUDFLARE_TUNNEL_TOKEN.");
-    args = ["tunnel", "run", "--token", process.env.CLOUDFLARE_TUNNEL_TOKEN!];
+    persistToken(token!);
+    log("Running tunnel with tunnel token (CLOUDFLARE_TUNNEL_TOKEN or api_key).");
+    // Token-based tunnels use Cloudflare's remotely-managed ingress config
+    // served from the dashboard — no local config.yml required.
+    args = ["tunnel", "run", "--token", token!];
   } else {
+    if (!ensureGeneratedConfig()) return;
     persistCredentials(cred);
     log(`Running tunnel with credentials from ${PERSISTENT_CREDENTIALS}.`);
     args = ["tunnel", "--config", GENERATED_CONFIG, "run"];

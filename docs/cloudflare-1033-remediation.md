@@ -74,7 +74,9 @@ The token decodes to tunnel `a1da8705-66f8-4646-88b7-fbfba98754e8` (account
 `736c43eec02b33cc698dd5f4a798a001`) — **not** the historical `20fbdf58-…` in the old
 local config.
 
-## 4. Remaining Blocker (owner-side, as of 2026-10-02)
+| **Real environment-replacement survival (2026-10-07)** | **PASS**: sandbox was replaced (all processes killed); relaunch of the launcher found the persisted token and re-registered all 4 edge connections in ~3s |
+
+## 4. Remaining Blocker (owner-side, as of 2026-10-07)
 The tunnel **connector is now healthy and restart-proof**, but the Cloudflare **DNS
 binding for `roster-work.com` still points at the old tunnel** (`20fbdf58-…`), which
 has no live connector — so the edge returns 1033 and **zero requests reach the new,

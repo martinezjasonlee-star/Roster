@@ -6,3 +6,14 @@
     @apply bg-white text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100;
   }
 }
+
+/* Clerk auth card mobile fix — Clerk enforces a ~350px card width that
+   overflows the viewport (right edge past the screen → horizontal scroll).
+   Verified at 390/360/320px viewports: width:100% keeps it inside without
+   breaking the card layout. Clerk mounts only on /auth/sign-in & /auth/sign-up. */
+.cl-rootBox,
+.cl-cardBox,
+.cl-card {
+  width: 100% !important;
+  max-width: 100% !important;
+}

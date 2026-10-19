@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import * as fs from "node:fs";
-import { esc, execDb, queryDb } from "../src/lib/db.ts";
+import { esc, execDb, ensureSchema, queryDb } from "../src/lib/db.ts";
 
 /**
  * Email notification dispatcher — real delivery with atomic claim/lease.
@@ -52,42 +52,9 @@ interface OwnedNotification {
 }
 
 /**
- * Idempotent schema guard: creates the table (with claim/lease columns) if
- * missing and adds any missing columns to an older table (duplicate-column
- * ALTER errors are swallowed).
+ * Schema DDL lives once in src/lib/db.ts (shared ensureSchema, idempotent and
+ * module-scope guarded) — the dispatcher calls the shared guard at pass start.
  */
-function ensureSchema(): void {
-  execDb(
-    `CREATE TABLE IF NOT EXISTS notifications (` +
-      `id TEXT PRIMARY KEY, ` +
-      `recipient_email TEXT NOT NULL, ` +
-      `subject TEXT NOT NULL, ` +
-      `body TEXT NOT NULL, ` +
-      `status TEXT NOT NULL DEFAULT 'pending', ` +
-      `created_at TEXT DEFAULT (datetime('now')), ` +
-      `sent_at TEXT, ` +
-      `attempts INTEGER NOT NULL DEFAULT 0, ` +
-      `last_error TEXT, ` +
-      `next_attempt_at TEXT, ` +
-      `claim_token TEXT, ` +
-      `lease_expires_at TEXT` +
-      `)`,
-  );
-  execDb(`CREATE INDEX IF NOT EXISTS idx_notifications_pending ON notifications(status, next_attempt_at)`);
-  execDb(
-    `CREATE INDEX IF NOT EXISTS idx_notifications_claim ON notifications(status, claim_token, lease_expires_at)`,
-  );
-  for (const col of [
-    "attempts INTEGER NOT NULL DEFAULT 0",
-    "last_error TEXT",
-    "next_attempt_at TEXT",
-    "claim_token TEXT",
-    "lease_expires_at TEXT",
-  ]) {
-    // Swallow "duplicate column" — the column already exists.
-    execDb(`ALTER TABLE notifications ADD COLUMN ${col}`);
-  }
-}
 
 function readJsonLog(path: string): unknown[] {
   if (!fs.existsSync(path)) return [];

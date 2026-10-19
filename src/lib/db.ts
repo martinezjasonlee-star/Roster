@@ -109,3 +109,60 @@ export function execDbThenQuery<T = Record<string, unknown>>(sqlWithSelect: stri
     return [];
   }
 }
+/**
+ * Idempotent schema guard. Brings the shared database replica up to the schema
+ * the application code expects, WITHOUT touching any data:
+ *
+ * - `notifications` table + indexes (same DDL as the email dispatcher — the
+ *   dispatcher's own ensureSchema becomes a no-op once this has run).
+ * - `businesses.photo_url` column (business onboarding writes it).
+ * - `messages.recipient_id` column (in-app messaging reads/writes it).
+ *
+ * Column adds are guarded by a PRAGMA existence check, so re-running is safe.
+ * Called once at module scope below so every process that imports this module
+ * (production serve, the dev server, and all verify scripts) starts with the
+ * correct schema — no first-request / first-dispatch-tick dependency.
+ */
+export function ensureSchema(): { ok: boolean; error?: string } {
+  try {
+    execDb(
+      `CREATE TABLE IF NOT EXISTS notifications (` +
+        `id TEXT PRIMARY KEY, ` +
+        `recipient_email TEXT NOT NULL, ` +
+        `subject TEXT NOT NULL, ` +
+        `body TEXT NOT NULL, ` +
+        `status TEXT NOT NULL DEFAULT 'pending', ` +
+        `created_at TEXT DEFAULT (datetime('now')), ` +
+        `sent_at TEXT, ` +
+        `attempts INTEGER NOT NULL DEFAULT 0, ` +
+        `last_error TEXT, ` +
+        `next_attempt_at TEXT, ` +
+        `claim_token TEXT, ` +
+        `lease_expires_at TEXT` +
+        `)`,
+    );
+    execDb(`CREATE INDEX IF NOT EXISTS idx_notifications_pending ON notifications(status, next_attempt_at)`);
+    execDb(`CREATE INDEX IF NOT EXISTS idx_notifications_claim ON notifications(status, claim_token, lease_expires_at)`);
+
+    addColumnIfMissing("businesses", "photo_url", "TEXT");
+    addColumnIfMissing("messages", "recipient_id", "TEXT");
+
+    return { ok: true };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("ensureSchema error:", message);
+    return { ok: false, error: message };
+  }
+}
+
+/** Add a column to a table only if it does not already exist. */
+function addColumnIfMissing(table: string, column: string, definition: string): void {
+  const cols = queryDb<{ name: string }>(`PRAGMA table_info(${table})`);
+  if (cols.some((c) => c.name === column)) return;
+  execDb(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+}
+
+// Guarded so this only runs in a Node/Bun runtime (never inside a client bundle).
+if (typeof process !== "undefined" && process.versions?.node) {
+  ensureSchema();
+}

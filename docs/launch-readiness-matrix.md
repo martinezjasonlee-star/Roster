@@ -32,13 +32,13 @@ Standard: no claim of defect-freeness — critical paths pass, limitations docum
 | Notification queue | PASS | `verify-dispatch.ts` 38/38 (bounded batches, retries, lease, failure state). Live delivery needs `RESEND_API_KEY` + verified sender → **OWNER-DEPENDENT** (queued, never falsely marked sent) |
 | Authentication (Clerk) | PARTIAL | Routes render 200; live sign-in needs owner's Clerk session — **OWNER-DEPENDENT** |
 | Subscriptions/Stripe | EXCLUDED | Express account can't sell subscriptions; recurring billing excluded from this gate unless owner upgrades account → **OWNER-DEPENDENT** |
-| Custom domain | BLOCKED | `roster-work.com` still HTTP 530 (Cloudflare public-hostname bound to old tunnel) → owner rebind required (see OWNER_ACTION_REQUIRED.md) |
+| Custom domain | www PASS / apex BLOCKED | VERIFIED 2026-10-22: `www.roster-work.com` HTTP 200 and `roster-work.com` HTTP 530 while connector for tunnel a1da8705-… is registered ("Registered tunnel connection", pdx02). BEFORE connector up: both 530. Diagnosis (not a verified fact): apex public-hostname still routed to old tunnel 20fbdf58-… which has no connector. Owner dashboard rebind required — see OWNER_ACTION_REQUIRED.md |
 | Mobile responsive | PASS (after fix) | Real-browser check at 390/360/320px on all 13 routes: no horizontal overflow |
 
 ## Known limitations (documented, per release standard)
 - Live email delivery and Stripe billing not exercised — no real provider credentials in environment; not claimed as working.
 - Clerk sign-in e2e requires live session; route-level render verified only.
-- `roster-work.com` not launch-ready until external HTTP 200 post-restart check passes.
+- `www.roster-work.com` currently HTTP 200 via the self-healing tunnel connector; `roster-work.com` (apex) not launch-ready until external HTTP 200 passes before AND after a supervised tunnel restart (currently 530 — owner dashboard rebind).
 
 ## How to re-verify (60 seconds)
 ```

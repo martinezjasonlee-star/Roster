@@ -38,6 +38,8 @@ const CLOUDFLARED_PATH = path.join(BIN_DIR, "cloudflared");
 const PERSISTENT_CF_DIR = path.join(SHARED_DIR, ".cloudflared");
 const PERSISTENT_CREDENTIALS = path.join(PERSISTENT_CF_DIR, "credentials.json");
 const LEGACY_CREDENTIALS = "/root/.cloudflared/credentials.json";
+/** Team-persisted tunnel run token (written once by the discovery flow). */
+const TUNNEL_TOKEN_FILE = path.join(PERSISTENT_CF_DIR, "tunnel-token");
 /** Source of truth for the tunnel identity (ID or name line of config.yml). */
 const SOURCE_CONFIG = path.join(SHARED_DIR, "config.yml");
 /** Generated config that always points credentials-file at the persisted copy. */
@@ -86,12 +88,38 @@ async function ensureCloudflaredInstalled(): Promise<boolean> {
 }
 
 /**
- * Returns the preferred authentication source: "token" when
- * CLOUDFLARE_TUNNEL_TOKEN is set, otherwise the path of an existing
- * credentials.json (persistent team path first, legacy /root path second).
+ * Resolve a Cloudflare tunnel run token, in order:
+ *   1. CLOUDFLARE_TUNNEL_TOKEN env
+ *   2. api_key env — the owner-facing secret is injected by the platform as a
+ *      `cloudflared.exe service install <token>` one-liner, so strip the prefix.
+ *   3. the team-persisted /home/team/shared/.cloudflared/tunnel-token file
+ * Returns null when no usable token is found.
+ */
+export function resolveTunnelToken(): string | null {
+  const direct = process.env.CLOUDFLARE_TUNNEL_TOKEN;
+  if (direct && direct.trim()) return direct.trim();
+  const apiKey = process.env.api_key;
+  if (apiKey && apiKey.trim()) {
+    const m = apiKey.match(/service\s+install\s+(\S+)/);
+    if (m && m[1]) return m[1];
+  }
+  try {
+    if (fs.existsSync(TUNNEL_TOKEN_FILE)) {
+      const t = fs.readFileSync(TUNNEL_TOKEN_FILE, "utf-8").trim();
+      if (t) return t;
+    }
+  } catch {
+    /* best-effort */
+  }
+  return null;
+}
+/**
+ * Returns the preferred authentication source: "token" when a token can be
+ * resolved, otherwise the path of an existing credentials.json (persistent
+ * team path first, legacy /root path second).
  */
 export function resolveCredentials(): string | null {
-  if (process.env.CLOUDFLARE_TUNNEL_TOKEN) return "token";
+  if (resolveTunnelToken()) return "token";
   for (const p of [PERSISTENT_CREDENTIALS, LEGACY_CREDENTIALS]) {
     if (fs.existsSync(p)) return p;
   }
@@ -219,8 +247,9 @@ export function startTunnelSupervisor(): void {
 
   let args: string[];
   if (cred === "token") {
-    log("Running tunnel with CLOUDFLARE_TUNNEL_TOKEN.");
-    args = ["tunnel", "run", "--token", process.env.CLOUDFLARE_TUNNEL_TOKEN!];
+    const token = resolveTunnelToken();
+    log("Running tunnel with token (CLOUDFLARE_TUNNEL_TOKEN | api_key | tunnel-token).");
+    args = ["tunnel", "run", "--token", token ?? ""];
   } else {
     persistCredentials(cred);
     log(`Running tunnel with credentials from ${PERSISTENT_CREDENTIALS}.`);

@@ -178,11 +178,55 @@ export function ensureGeneratedConfig(): boolean {
 
 /**
  * Verifiable health checks: origin reachable on :3000 and the public custom
- * domain answering 2xx through the tunnel. Writes each result to
+ * domain(s) answering 2xx through the tunnel. Writes each result to
  * /home/team/shared/tunnel_health.json (keeps last 50 entries).
  */
-export function checkTunnelHealth(): { originOk: boolean; publicOk: boolean; time: string } {
-  const result = { originOk: false, publicOk: false, time: new Date().toISOString() };
+export interface HostCheck {
+  /** HTTP status code, or null when the request never produced a response. */
+  status: number | null;
+  ok: boolean;
+}
+
+export interface HealthResult {
+  originOk: boolean;
+  /** True only when EVERY public hostname answers 2xx. */
+  publicOk: boolean;
+  /** Per-hostname result, keyed by hostname. */
+  hosts: Record<string, HostCheck>;
+  time: string;
+}
+
+/**
+ * Public hostnames that must both answer 2xx through the tunnel id in
+ * /home/team/shared/config.yml. They are separate DNS records and can point at
+ * different tunnels, so each is probed and recorded independently: a single
+ * combined flag previously reported "public FAIL" while www was healthy,
+ * which hid the fact that only the apex was misrouted.
+ */
+export const PUBLIC_HOSTNAMES = ["roster-work.com", "www.roster-work.com"] as const;
+
+/** HTTP status for `url`, or null when the request never completed. */
+function httpStatus(url: string): number | null {
+  try {
+    const out = execSync(
+      `curl -s -o /dev/null -w '%{http_code}' --max-time 12 ${JSON.stringify(url)}`,
+      { encoding: "utf-8", timeout: 15_000 },
+    ).trim();
+    const code = Number.parseInt(out, 10);
+    return Number.isNaN(code) ? null : code;
+  } catch {
+    return null;
+  }
+}
+
+export function checkTunnelHealth(): HealthResult {
+  const hosts: Record<string, HostCheck> = {};
+  const result: HealthResult = {
+    originOk: false,
+    publicOk: false,
+    hosts,
+    time: new Date().toISOString(),
+  };
   try {
     execSync("curl -sf -o /dev/null --max-time 8 http://localhost:3000", {
       stdio: "ignore",
@@ -192,15 +236,11 @@ export function checkTunnelHealth(): { originOk: boolean; publicOk: boolean; tim
   } catch {
     result.originOk = false;
   }
-  try {
-    execSync("curl -sf -o /dev/null --max-time 12 https://roster-work.com", {
-      stdio: "ignore",
-      timeout: 15_000,
-    });
-    result.publicOk = true;
-  } catch {
-    result.publicOk = false;
+  for (const host of PUBLIC_HOSTNAMES) {
+    const status = httpStatus(`https://${host}`);
+    hosts[host] = { status, ok: status !== null && status >= 200 && status < 300 };
   }
+  result.publicOk = PUBLIC_HOSTNAMES.every((host) => hosts[host].ok === true);
   try {
     let history: typeof result[] = [];
     if (fs.existsSync(HEALTH_FILE)) {
@@ -220,15 +260,20 @@ export function checkTunnelHealth(): { originOk: boolean; publicOk: boolean; tim
   return result;
 }
 
+function formatHealth(h: HealthResult): string {
+  const perHost = Object.entries(h.hosts)
+    .map(([host, check]) => `${host}=${check.status ?? "ERR"}`)
+    .join(" ");
+  return `origin=${h.originOk ? "ok" : "FAIL"} public=${h.publicOk ? "ok" : "FAIL"} ${perHost}`;
+}
+
 function startHealthMonitor(): void {
   if (healthTimer) return;
   healthTimer = setInterval(() => {
-    const h = checkTunnelHealth();
-    log(`health: origin=${h.originOk ? "ok" : "FAIL"} public=${h.publicOk ? "ok" : "FAIL"}`);
+    log(`health: ${formatHealth(checkTunnelHealth())}`);
   }, HEALTH_CHECK_MS);
   // First check right away so evidence exists without waiting 30s.
-  const h = checkTunnelHealth();
-  log(`health (initial): origin=${h.originOk ? "ok" : "FAIL"} public=${h.publicOk ? "ok" : "FAIL"}`);
+  log(`health (initial): ${formatHealth(checkTunnelHealth())}`);
 }
 
 export function startTunnelSupervisor(): void {

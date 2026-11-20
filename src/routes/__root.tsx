@@ -9,7 +9,12 @@ import type { ReactNode } from "react";
 
 import appCss from "~/styles/app.css?url";
 
-const CLERK_PUBLISHABLE_KEY = "pk_test_ZmFzdC1mbGVhLTI3LmNsZXJrLmFjY291bnRzLmRldiQ";
+// Publishable (public) key. Prefer the environment value so a production
+// Clerk instance can be switched on without a code change; fall back to the
+// current development instance when the variable is unset.
+const CLERK_PUBLISHABLE_KEY =
+  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ||
+  "pk_test_ZmFzdC1mbGVhLTI3LmNsZXJrLmFjY291bnRzLmRldiQ";
 
 export const Route = createRootRoute({
   head: () => ({

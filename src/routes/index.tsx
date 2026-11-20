@@ -13,7 +13,7 @@ function Home() {
   return (
     <div className="min-h-screen bg-white font-sans text-[#0F172A]">
       {/* Navigation */}
-      <nav className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
+      <nav className="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 max-w-6xl mx-auto">
         <div className="flex items-center gap-2">
           <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect x="0" y="5" width="20" height="4" rx="2" fill="#0F172A"/>
@@ -22,10 +22,10 @@ function Home() {
           </svg>
           <span className="font-bold text-xl tracking-tight">Roster</span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-4">
           {isSignedIn ? (
             <>
-              <span className="text-sm text-[#0F172A]">{user?.primaryEmailAddress?.emailAddress}</span>
+              <span className="hidden text-sm text-[#0F172A] sm:inline">{user?.primaryEmailAddress?.emailAddress}</span>
               <a href="/worker-dashboard" className="border border-slate-200 text-[#0F172A] px-4 py-2 rounded-lg font-semibold text-sm hover:border-slate-300 transition">
                 My Dashboard
               </a>
@@ -33,8 +33,13 @@ function Home() {
             </>
           ) : (
             <>
-              <a href="/auth/sign-in" className="text-sm font-medium text-[#0F172A] hover:text-[#0F172A] transition">Sign In</a>
-              <a href="/onboarding/business" className="bg-[#E8633B] text-white px-5 py-2 rounded-lg font-semibold text-sm hover:bg-[#d4552e] transition">
+              <a
+                href="/auth/sign-in"
+                className="inline-flex items-center whitespace-nowrap rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-[#0F172A] transition hover:border-[#0F172A] hover:bg-[#F8F6F3] sm:px-4"
+              >
+                Sign In
+              </a>
+              <a href="/onboarding/business" className="inline-flex items-center whitespace-nowrap bg-[#E8633B] text-white px-3 py-2 rounded-lg font-semibold text-sm hover:bg-[#d4552e] transition sm:px-5">
                 Join as a Venue
               </a>
             </>

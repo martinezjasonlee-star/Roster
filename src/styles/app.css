@@ -17,3 +17,12 @@
   width: 100% !important;
   max-width: 100% !important;
 }
+
+/* Auth pages frame Clerk with .cl-cardBox (see src/routes/auth/*). Clerk's own
+   card/footer draw a hairline and shadow of their own, which shows as a seam
+   above the footer; the frame supplies them instead. */
+.cl-cardBox .cl-card,
+.cl-cardBox .cl-footer {
+  border: none !important;
+  box-shadow: none !important;
+}
